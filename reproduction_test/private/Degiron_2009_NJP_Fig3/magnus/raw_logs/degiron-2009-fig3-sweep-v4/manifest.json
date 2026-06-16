@@ -1,0 +1,34 @@
+{
+  "status": "completed",
+  "backend": "batch_java",
+  "domain_preset": "optics",
+  "run_id": "degiron-2009-fig3-sweep-v4",
+  "run_dir": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-sweep-v4",
+  "timestamp_unix": 1781541165,
+  "comsol": {
+    "version": "COMSOL Multiphysics 6.3.0.290"
+  },
+  "artifacts": {
+    "manifest": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-sweep-v4/manifest.json",
+    "command": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-sweep-v4/command.json",
+    "env_report": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-sweep-v4/env_report.json",
+    "batch_log": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-sweep-v4/raw/comsol.log",
+    "stdout": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-sweep-v4/raw/stdout.txt",
+    "stderr": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-sweep-v4/raw/stderr.txt",
+    "output_mph": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-sweep-v4/raw/model_output.mph",
+    "results_dir": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-sweep-v4/results"
+  },
+  "failure": null,
+  "compile": {
+    "source": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-sweep-v4/raw/Degiron2009Fig3ModeSweep.java",
+    "compiled": true,
+    "returncode": 0,
+    "stdout": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-sweep-v4/raw/compile.stdout.txt",
+    "stderr": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-sweep-v4/raw/compile.stderr.txt",
+    "class_file": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-sweep-v4/raw/Degiron2009Fig3ModeSweep.class"
+  },
+  "metrics": {},
+  "success_markers": [
+    "DEGIRON_2009_FIG3_MODE_SWEEP_OK rows=62 full_vector=false variant=sweep"
+  ]
+}

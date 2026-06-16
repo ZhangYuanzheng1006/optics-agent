@@ -1,0 +1,12 @@
+DEGIRON_CSV_HEADER,t_um,mode_index,branch,re_neff,im_neff,au_energy_fraction,su8_energy_fraction,classification_score,method,selected_physics,study_type,extraction_note
+DEGIRON_CSV_ROW,5.6000,1,symmetric,1.5367126054,0.0001696329983,0.661030,0.338970,0.001161906947,surrogate_fallback,coupled_mode_surrogate,analytic,fallback
+DEGIRON_CSV_ROW,5.6000,2,antisymmetric,1.5355506985,0.0001054231113,0.338970,0.661030,-0.001161906947,surrogate_fallback,coupled_mode_surrogate,analytic,fallback
+DEGIRON_CSV_ROW,6.6000,1,symmetric,1.5386084999,8.278911740e-05,0.280257,0.719743,0.001224604537,surrogate_fallback,coupled_mode_surrogate,analytic,fallback
+DEGIRON_CSV_ROW,6.6000,2,antisymmetric,1.5373838954,0.0001564610216,0.719743,0.280257,-0.001224604537,surrogate_fallback,coupled_mode_surrogate,analytic,fallback
+DEGIRON_METRIC,case_id,degiron_2009_njp_fig3
+DEGIRON_METRIC,status,completed
+DEGIRON_METRIC,method,surrogate_fallback
+DEGIRON_METRIC,physical_reproduction_complete,false
+DEGIRON_METRIC,row_count,4
+DEGIRON_METRIC,attempt_errors,t=5.6: Exception: 	com.comsol.nativejni.FlNativeException: COMSOL 断言失败。 	(rethrown as com.comsol.util.exceptions.FlException) Messages: 	The following feature has encountered a problem 	- Feature: 特征值求解器 1 (sol1/e1)  	Failed to compute the matrix factorization in the eigensolver  	Try to search for eigenvalues around a different shift value  	COMSOL assertion failure ; t=6.6: Exception: 	com.comsol.nativejni.FlNativeException: COMSOL 断言失败。 	(rethrown as com.comsol.util.exceptions.FlException) Messages: 	The following feature has encountered a problem 	- Feature: 特征值求解器 1 (sol1/e1)  	Failed to compute the matrix factorization in the eigensolver  	Try to search for eigenvalues around a different shift value  	COMSOL assertion failure ; 
+DEGIRON_2009_FIG3_MODE_SWEEP_OK rows=4 full_vector=false variant=smoke

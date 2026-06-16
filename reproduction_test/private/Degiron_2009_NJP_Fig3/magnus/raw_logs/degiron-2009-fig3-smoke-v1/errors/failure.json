@@ -1,0 +1,4 @@
+{
+  "code": "OUTPUT_MPH_MISSING",
+  "message": "COMSOL did not create /data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-smoke-v1/raw/model_output.mph\n--- comsol.log tail ---\n*******************************************\n***COMSOL 6.3.0.290 progress output file***\n*******************************************\nMon Jun 15 16:07:43 UTC 2026\nCOMSOL Multiphysics 6.3 (开发版本: 290) 在批处理模式下启动\n正在运行: /data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-smoke-v1/raw/Degiron2009Fig3ModeSweep.class\n\n/***************/\n/*****错误********/\n/***************/\n运行 Java 类时出错。\n安全性首选项“文件系统访问”不允许“read”访问“.”。\n - 类: Degiron2009Fig3ModeSweep\n总时间: 1 s.\n"
+}

@@ -38,6 +38,7 @@ Use Gustation/Magnus for containerized compute jobs.
 
 | User intent | Load |
 |---|---|
+| Paper figure reproduction, parameter extraction, missing-info tables, optics-group standard answers, reproduction reports, self-iteration workflow lessons | `optics-paper-reproduction` |
 | COMSOL runtime image, active `magnus-local` image, license mount, runtime folder, admin handoff | `optics-comsol-runtime` |
 | COMSOL `batch`, `.java`, `.mph`, `.m`, smoke tests, manifest contract | `optics-comsol-batch` |
 | Magnus jobs, logs, blueprint save/launch, FileSecret, MAGNUS_RESULT/ACTION, mounts, `/data/public/zhangyuanzheng` staging | `optics-magnus-platform` |

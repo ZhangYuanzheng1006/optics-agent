@@ -1,0 +1,13 @@
+{
+  "run_dir": "C:\\Users\\27370\\Desktop\\project\\optics_agent\\reproduction_test\\private\\Degiron_2009_NJP_Fig3\\magnus\\raw_logs\\degiron-2009-fig3-sweep-v4",
+  "raw_csv": "C:\\Users\\27370\\Desktop\\project\\optics_agent\\reproduction_test\\private\\Degiron_2009_NJP_Fig3\\magnus\\raw_logs\\degiron-2009-fig3-sweep-v4\\raw\\neff_sweep_raw_from_stdout.csv",
+  "final_csv": "C:\\Users\\27370\\Desktop\\project\\optics_agent\\reproduction_test\\private\\Degiron_2009_NJP_Fig3\\results\\neff_sweep.csv",
+  "figure": "C:\\Users\\27370\\Desktop\\project\\optics_agent\\reproduction_test\\private\\Degiron_2009_NJP_Fig3\\results\\fig3_reproduction.png",
+  "row_count": 62,
+  "method": "surrogate_fallback",
+  "physical_reproduction_complete": false,
+  "branches": [
+    "antisymmetric",
+    "symmetric"
+  ]
+}

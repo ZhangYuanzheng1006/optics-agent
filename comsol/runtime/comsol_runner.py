@@ -79,6 +79,22 @@ def read_text_tail(path: Path, limit: int = 4000) -> str:
     return text[-limit:]
 
 
+def batch_failure_context(raw_dir: Path, limit_per_file: int = 2000) -> str:
+    parts: list[str] = []
+    for name in (
+        "compile.stdout.txt",
+        "compile.stderr.txt",
+        "stdout.txt",
+        "stderr.txt",
+        "comsol.log",
+    ):
+        path = raw_dir / name
+        tail = read_text_tail(path, limit=limit_per_file)
+        if tail:
+            parts.append(f"--- {name} tail ---\n{tail}")
+    return "\n".join(parts)
+
+
 def write_json(path: Path, payload: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -352,6 +368,9 @@ def main() -> int:
         if batch_result.returncode != 0:
             raise RunnerError("BATCH_EXIT_NONZERO", f"comsol batch exited with {batch_result.returncode}: {read_text_tail(raw_dir / 'stderr.txt') or read_text_tail(raw_dir / 'comsol.log')}")
         if not canonicalize_output_mph(raw_dir, output_mph):
+            context = batch_failure_context(raw_dir)
+            if context:
+                raise RunnerError("OUTPUT_MPH_MISSING", f"COMSOL did not create {output_mph}\n{context}")
             raise RunnerError("OUTPUT_MPH_MISSING", f"COMSOL did not create {output_mph}")
 
         if args.postprocess_file:
