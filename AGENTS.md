@@ -58,13 +58,14 @@ comsol/manifests/
 .magnus/.blueprints/Optics_COMSOL_Runtime_zyz.magnus.blueprint.yaml
 ```
 
-- Degiron 2009 Fig. 3 reproduction rehearsal exists under:
+- Degiron 2009 Fig. 3 reproduction rehearsals exist under:
 
 ```text
 reproduction_test/private/Degiron_2009_NJP_Fig3/
+reproduction_test/private/Degiron_2009_NJP_Fig3_v2/
 ```
 
-Its engineering workflow completed, but physical COMSOL full-vector reproduction is not complete. The final sweep is labelled `surrogate_fallback`; do not present it as a successful paper reproduction.
+V1 completed the engineering workflow but not physical COMSOL full-vector reproduction; its final sweep is labelled `surrogate_fallback`. V2 completed a scalar TM-like PDE diagnostic sweep and an isolated SU-8 Wave Optics/RF mode-analysis probe. The v2 probe compiles, meshes, reaches the eigensolver, and saves `.mph`, but produces zero physical `neff` rows because the eigensolver fails matrix factorization. Do not present either v1 or v2 as a successful Fig. 3 paper reproduction.
 
 ## Root Layout
 
@@ -138,6 +139,24 @@ New-Item -ItemType HardLink -Path .\CLAUDE.md -Target .\AGENTS.md
 ```
 
 Only run the above after verifying both resolved paths are inside the repository.
+
+## Progress Reporting Policy
+
+For paper-reproduction or COMSOL/Magnus tasks that last beyond a smoke test, maintain a human-facing progress trail suitable for PI updates:
+
+- Record stage status in the run folder as work proceeds, not only at the end.
+- Keep `final_report.md` and `workflow_handoff*.md` current enough that a short WeChat status can be generated without reconstructing history from raw logs.
+- Separate these states in every report and PI update:
+
+```text
+workflow/pipeline completed
+COMSOL job completed
+physical reproduction completed
+```
+
+- When a result is a scalar diagnostic, surrogate, fallback, or failed probe, say that directly.
+- When progress stalls on missing human/domain input, state the exact requested artifact, for example a COMSOL 6.3 GUI-exported Wave Optics/RF mode-analysis `.java` or `.mph` template.
+- For PI messages, prefer concise status plus current blocker plus concrete request from the optics group. Do not overstate numerical agreement.
 
 ## Safety Constraints
 
@@ -243,6 +262,13 @@ Magnus Success
 
 For paper reproduction, a fallback/surrogate result may validate the workflow but must never be reported as physical reproduction.
 
+Degiron v1/v2 specific lessons:
+
+- V1 proved the Magnus/COMSOL Java pipeline and stdout-to-CSV reporting, but its final plot was a `surrogate_fallback`.
+- V2 proved a scalar TM-like PDE sweep can run, but its `Im(neff)` is effectively zero and no anticrossing is recovered; it is diagnostic only.
+- V2 isolated SU-8 Wave Optics/RF mode-analysis reached the eigensolver after explicit mesh construction, then failed matrix factorization for multiple shift styles.
+- The next meaningful technical input is a verified COMSOL 6.3 GUI-exported mode-analysis template; blind changes to Java feature strings or eigenvalue shifts should stop once isolated mode analysis fails.
+
 ## Development Practices
 
 - Use `rg` / `rg --files` first for search.
@@ -261,4 +287,3 @@ python C:\Users\27370\.codex\skills\.system\skill-creator\scripts\quick_validate
 ```
 
 PowerShell may not expand Python wildcards. If needed, expand file lists in PowerShell first and pass explicit paths to Python.
-

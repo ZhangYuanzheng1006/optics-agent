@@ -1,0 +1,8 @@
+{
+  "source": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v5/raw/Degiron2009Fig3V2ScalarPdeLadderSmoke.java",
+  "compiled": true,
+  "returncode": 0,
+  "stdout": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v5/raw/compile.stdout.txt",
+  "stderr": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v5/raw/compile.stderr.txt",
+  "class_file": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v5/raw/Degiron2009Fig3V2ScalarPdeLadderSmoke.class"
+}

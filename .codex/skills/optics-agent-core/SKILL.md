@@ -63,6 +63,21 @@ When COMSOL and Magnus are both mentioned, load `optics-comsol-runtime` first, t
 - Blueprint id:
   `Optics_COMSOL_Runtime_zyz`.
 
+## Current Paper-Reproduction Status
+
+Degiron 2009 Fig. 3 has two private rehearsal folders:
+
+```text
+reproduction_test/private/Degiron_2009_NJP_Fig3/
+reproduction_test/private/Degiron_2009_NJP_Fig3_v2/
+```
+
+Use them as workflow evidence, not as successful physical reproduction evidence:
+
+- V1 proved paper reading, parameter extraction, Magnus submission, Java batch cleanup, stdout parsing, CSV/plot generation, and final reporting. Its final sweep is `surrogate_fallback`.
+- V2 proved scalar TM-like PDE diagnostics and ran an isolated SU-8 Wave Optics/RF mode-analysis probe. The probe reached the eigensolver after explicit mesh construction but failed matrix factorization and produced zero physical `neff` rows.
+- The current blocker is missing COMSOL 6.3 GUI-exported Wave Optics/RF mode-analysis physics/study/solver/result settings.
+
 ## Credentials
 
 - Store credentials in `C:\Users\27370\Desktop\project\secret.json`.
@@ -94,3 +109,4 @@ docs/magnus/magnus_ai4s_0604_useful_notes.md
 - For Magnus file flow, prefer: temporary user files via `FileSecret`, persistent code/license/results via mounts, admin handoff via SSH/SCP to `/data/public/zhangyuanzheng`.
 - Keep long logs and plans in Markdown files; summarize only the high-signal lines to the user.
 - Treat `AGENTS.md` as the always-on project rulebook. `CLAUDE.md` should be a hard link to `AGENTS.md`; if project rules change, update `AGENTS.md` and the relevant `.codex/skills/*/SKILL.md` together.
+- For long-running reproductions, keep the report state current enough that a PI-facing WeChat update can be generated from `final_report.md`, `workflow_handoff*.md`, and `todo.md` without rereading raw logs.

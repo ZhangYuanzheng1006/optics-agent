@@ -1,0 +1,52 @@
+{
+  "status": "completed",
+  "backend": "batch_java",
+  "domain_preset": "optics",
+  "run_id": "degiron-2009-fig3-v2-coupled-sweep-v1",
+  "run_dir": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1",
+  "timestamp_unix": 1781614023,
+  "comsol": {
+    "version": "COMSOL Multiphysics 6.3.0.290"
+  },
+  "artifacts": {
+    "manifest": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/manifest.json",
+    "command": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/command.json",
+    "env_report": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/env_report.json",
+    "batch_log": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/raw/comsol.log",
+    "stdout": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/raw/stdout.txt",
+    "stderr": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/raw/stderr.txt",
+    "output_mph": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/raw/model_output.mph",
+    "results_dir": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/results"
+  },
+  "failure": null,
+  "compile": {
+    "source": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/raw/Degiron2009Fig3V2ScalarPdeCoupledSweep.java",
+    "compiled": true,
+    "returncode": 0,
+    "stdout": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/raw/compile.stdout.txt",
+    "stderr": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/raw/compile.stderr.txt",
+    "class_file": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/raw/Degiron2009Fig3V2ScalarPdeCoupledSweep.class"
+  },
+  "metrics": {
+    "run_dir": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1",
+    "raw_csv": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/raw/neff_v2_raw_from_stdout.csv",
+    "final_csv": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/results/coupled_neff_sweep.csv",
+    "figure": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/results/fig3_reproduction_v2.png",
+    "row_count": 248,
+    "error_count": 0,
+    "errors": [],
+    "methods": [
+      "scalar_tm_hx_pde"
+    ],
+    "cases": [
+      "coupled"
+    ],
+    "coupled_row_count": 248,
+    "plausible_row_count": 248,
+    "physical_reproduction_complete": false,
+    "physical_status": "scalar_tm_hx_pde_candidate"
+  },
+  "success_markers": [
+    "DEGIRON_2009_FIG3_V2_COUPLED_SWEEP_OK rows=248 method=scalar_tm_hx_pde"
+  ]
+}

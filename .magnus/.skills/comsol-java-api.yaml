@@ -1181,6 +1181,8 @@ payload:
         - Hand-written Java should keep stable tags for geometry, selections, physics, study, solver, datasets, numerical results, and tables.
         - Avoid `System.getenv`, `System.getProperty`, direct Java file IO inside `run()`, inner classes, and anonymous classes in Magnus/COMSOL batch Java unless that exact pattern has been validated.
         - Mark uncertain physics-specific setting keys as requiring GUI-exported Java validation instead of guessing.
+        - For Wave Optics/RF mode analysis, stop blind retries after an isolated dielectric waveguide smoke reaches the eigensolver but fails matrix factorization across multiple shift scales. At that point, request a COMSOL 6.3 GUI-exported `.java` or `.mph` template instead of continuing to invent physics/study/solver keys.
+        - Degiron 2009 Fig. 3 v2 confirmed this boundary: explicit mesh fixed a mesh blocker, but isolated SU-8 mode analysis still failed matrix factorization and produced zero physical `neff` rows.
 
         ## References
 

@@ -1,0 +1,11 @@
+{
+  "run_mode": "batch_java",
+  "domain_preset": "optics",
+  "code_root": "/data/public/zhangyuanzheng/comsol-runtime",
+  "license_mode": "server_env",
+  "license_path": "/opt/comsol-license/license.dat",
+  "case_path": "/data/public/zhangyuanzheng/comsol-runtime/cases/degiron_2009_fig3_v2",
+  "input_file": "/data/public/zhangyuanzheng/comsol-runtime/cases/degiron_2009_fig3_v2/Degiron2009Fig3V2ScalarPdeCoupledSweep.java",
+  "postprocess_file": "/data/public/zhangyuanzheng/comsol-runtime/cases/degiron_2009_fig3_v2/postprocess_degiron_fig3_v2.py",
+  "output_root": "/data/public/zhangyuanzheng/comsol-runtime/runs"
+}

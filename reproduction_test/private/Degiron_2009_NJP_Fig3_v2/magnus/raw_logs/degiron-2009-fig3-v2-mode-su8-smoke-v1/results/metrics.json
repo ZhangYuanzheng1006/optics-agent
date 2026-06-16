@@ -1,0 +1,18 @@
+{
+  "run_dir": "C:\\Users\\27370\\Desktop\\project\\optics_agent\\reproduction_test\\private\\Degiron_2009_NJP_Fig3_v2\\magnus\\raw_logs\\degiron-2009-fig3-v2-mode-su8-smoke-v1",
+  "raw_csv": "C:\\Users\\27370\\Desktop\\project\\optics_agent\\reproduction_test\\private\\Degiron_2009_NJP_Fig3_v2\\magnus\\raw_logs\\degiron-2009-fig3-v2-mode-su8-smoke-v1\\raw\\neff_v2_raw_from_stdout.csv",
+  "final_csv": "C:\\Users\\27370\\Desktop\\project\\optics_agent\\reproduction_test\\private\\Degiron_2009_NJP_Fig3_v2\\results\\degiron-2009-fig3-v2-mode-su8-smoke-v1_neff.csv",
+  "figure": "",
+  "row_count": 0,
+  "error_count": 2,
+  "errors": [
+    "isolated_su8_mode,5.6000,shift_kind=neff: Exception: \tcom.comsol.util.exceptions.FlException: 无法自动设置网格大小。 Messages: \tFailed to set up physics-controlled mesh  \tFailed to set mesh size automatically ; shift_kind=beta: Exception: \tcom.comsol.util.exceptions.FlException: 无法自动设置网格大小。 Messages: \tFailed to set up physics-controlled mesh  \tFailed to set mesh size automatically ; shift_kind=plain: Exception: \tcom.comsol.util.exceptions.FlException: 无法自动设置网格大小。 Messages: \tFailed to set up physics-controlled mesh  \tFailed to set mesh size automatically ;",
+    "isolated_su8_mode,6.6000,shift_kind=neff: Exception: \tcom.comsol.util.exceptions.FlException: 无法自动设置网格大小。 Messages: \tFailed to set up physics-controlled mesh  \tFailed to set mesh size automatically ; shift_kind=beta: Exception: \tcom.comsol.util.exceptions.FlException: 无法自动设置网格大小。 Messages: \tFailed to set up physics-controlled mesh  \tFailed to set mesh size automatically ; shift_kind=plain: Exception: \tcom.comsol.util.exceptions.FlException: 无法自动设置网格大小。 Messages: \tFailed to set up physics-controlled mesh  \tFailed to set mesh size automatically ;"
+  ],
+  "methods": [],
+  "cases": [],
+  "coupled_row_count": 0,
+  "plausible_row_count": 0,
+  "physical_reproduction_complete": false,
+  "physical_status": "no_physical_rows"
+}

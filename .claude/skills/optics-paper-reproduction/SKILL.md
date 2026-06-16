@@ -58,6 +58,12 @@ When the task involves COMSOL or Magnus execution, also load the relevant runtim
    - `physical reproduction success` means the result matches expected ranges/trends with defensible modeling assumptions.
    - A `surrogate_fallback` can validate file flow and plotting, but it is not a paper reproduction.
 
+8. Keep a PI-facing progress trail.
+   - Update `todo.md`, `final_report.md`, or a short run note when the state changes from planned -> submitted -> completed -> physically validated/failed.
+   - Write summaries so they can be converted into a concise WeChat update without re-reading raw logs.
+   - In PI-facing text, state the current result class explicitly: pipeline success, scalar diagnostic, fallback, failed probe, or physical reproduction.
+   - If blocked by missing domain input, name the exact requested artifact and why it is needed.
+
 ## Required Artifacts
 
 For each reproduction run, create a stable folder such as:
@@ -153,6 +159,16 @@ Degiron 2009 Fig. 3 exposed these specific failure classes:
 - Inner helper classes caused COMSOL-side class execution errors.
 - Physics-controlled mesh failed; explicit `FreeTri` mesh avoided the mesh setup blocker.
 - Full-vector mode analysis reached the eigensolver but failed matrix factorization across several shifts; this requires isolated-mode validation or a GUI-exported Java template.
+- V2 isolated SU-8 Wave Optics/RF mode-analysis reached the eigensolver after explicit mesh construction, but still failed matrix factorization for `neff`, `beta`, and plain shifts. This confirms the remaining blocker is COMSOL mode-analysis setup, not Magnus wrapping.
+
+## Degiron V1/V2 Reporting Baseline
+
+When summarizing Degiron 2009 Fig. 3 progress:
+
+- V1: end-to-end workflow completed; final figure was `surrogate_fallback`; physical reproduction incomplete.
+- V2: scalar TM-like PDE ladder and coupled sweep completed; `Re(neff)` is too low, `Im(neff)` is effectively zero, and no clear anticrossing is recovered; physical reproduction incomplete.
+- V2 mode-analysis probe: isolated SU-8 model compiles, meshes, reaches COMSOL eigensolver, saves `.mph`, but produces zero `neff` rows due matrix factorization failure.
+- Required next input: minimal COMSOL 6.3 GUI-exported Wave Optics/RF mode-analysis `.java` or `.mph` template with one known-good `neff` output.
 
 ## Report Requirements
 
@@ -171,4 +187,3 @@ Degiron 2009 Fig. 3 exposed these specific failure classes:
 - what optics collaborators must provide;
 - what a standard answer must contain;
 - what agent modules are needed: paper parser, parameter extractor, missing-info detector, COMSOL generator, mesh/boundary proposer, Magnus submitter, log parser, validator, self-iteration loop, final-report generator.
-

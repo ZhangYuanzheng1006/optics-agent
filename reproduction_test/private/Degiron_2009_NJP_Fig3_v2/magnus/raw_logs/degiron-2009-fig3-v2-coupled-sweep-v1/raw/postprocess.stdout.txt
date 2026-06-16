@@ -1,0 +1,19 @@
+{
+  "run_dir": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1",
+  "raw_csv": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/raw/neff_v2_raw_from_stdout.csv",
+  "final_csv": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/results/coupled_neff_sweep.csv",
+  "figure": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-coupled-sweep-v1/results/fig3_reproduction_v2.png",
+  "row_count": 248,
+  "error_count": 0,
+  "errors": [],
+  "methods": [
+    "scalar_tm_hx_pde"
+  ],
+  "cases": [
+    "coupled"
+  ],
+  "coupled_row_count": 248,
+  "plausible_row_count": 248,
+  "physical_reproduction_complete": false,
+  "physical_status": "scalar_tm_hx_pde_candidate"
+}

@@ -1,0 +1,9 @@
+DEGIRON_V2_ERROR,isolated_su8,5.6000,no_filtered_modes
+DEGIRON_V2_ERROR,isolated_su8,6.6000,no_filtered_modes
+DEGIRON_V2_ERROR,isolated_au,5.6000,no_filtered_modes
+DEGIRON_V2_ERROR,isolated_au,6.6000,no_filtered_modes
+DEGIRON_V2_ERROR,coupled,5.4000,no_filtered_modes
+DEGIRON_V2_ERROR,coupled,5.6000,no_filtered_modes
+DEGIRON_V2_ERROR,coupled,6.6000,no_filtered_modes
+DEGIRON_V2_CSV_HEADER,case_name,t_um,mode_index,branch,re_neff,im_neff,lambda_re,lambda_im,method,boundary,extraction_note
+DEGIRON_2009_FIG3_V2_LADDER_SMOKE_OK rows=0 method=scalar_tm_hx_pde

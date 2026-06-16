@@ -1,0 +1,15 @@
+{
+  "case_id": "degiron_2009_fig3_v2_ladder_smoke",
+  "run_id": "degiron-2009-fig3-v2-ladder-smoke-v6",
+  "method": "scalar_tm_hx_pde",
+  "t_values_um": [5.4, 5.6, 6.6],
+  "lambda0_um": 1.55,
+  "cpu_count": 8,
+  "memory_demand": "32G",
+  "ephemeral_storage": "100G",
+  "priority": "B2",
+  "container_image": "docker://magnus-local/comsol-runtime:latest",
+  "code_root": "/data/public/zhangyuanzheng/comsol-runtime",
+  "remote_case_dir": "/data/public/zhangyuanzheng/comsol-runtime/cases/degiron_2009_fig3_v2",
+  "output_root": "/data/public/zhangyuanzheng/comsol-runtime/runs"
+}

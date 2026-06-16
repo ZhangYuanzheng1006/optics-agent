@@ -1,0 +1,54 @@
+{
+  "status": "completed",
+  "backend": "batch_java",
+  "domain_preset": "optics",
+  "run_id": "degiron-2009-fig3-v2-ladder-smoke-v6",
+  "run_dir": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6",
+  "timestamp_unix": 1781613522,
+  "comsol": {
+    "version": "COMSOL Multiphysics 6.3.0.290"
+  },
+  "artifacts": {
+    "manifest": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/manifest.json",
+    "command": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/command.json",
+    "env_report": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/env_report.json",
+    "batch_log": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/raw/comsol.log",
+    "stdout": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/raw/stdout.txt",
+    "stderr": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/raw/stderr.txt",
+    "output_mph": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/raw/model_output.mph",
+    "results_dir": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/results"
+  },
+  "failure": null,
+  "compile": {
+    "source": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/raw/Degiron2009Fig3V2ScalarPdeLadderSmoke.java",
+    "compiled": true,
+    "returncode": 0,
+    "stdout": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/raw/compile.stdout.txt",
+    "stderr": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/raw/compile.stderr.txt",
+    "class_file": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/raw/Degiron2009Fig3V2ScalarPdeLadderSmoke.class"
+  },
+  "metrics": {
+    "run_dir": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6",
+    "raw_csv": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/raw/neff_v2_raw_from_stdout.csv",
+    "final_csv": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/results/ladder_smoke_neff.csv",
+    "figure": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v6/results/ladder_smoke_neff.png",
+    "row_count": 56,
+    "error_count": 0,
+    "errors": [],
+    "methods": [
+      "scalar_tm_hx_pde"
+    ],
+    "cases": [
+      "coupled",
+      "isolated_au",
+      "isolated_su8"
+    ],
+    "coupled_row_count": 24,
+    "plausible_row_count": 56,
+    "physical_reproduction_complete": false,
+    "physical_status": "scalar_tm_hx_pde_candidate"
+  },
+  "success_markers": [
+    "DEGIRON_2009_FIG3_V2_LADDER_SMOKE_OK rows=56 method=scalar_tm_hx_pde"
+  ]
+}

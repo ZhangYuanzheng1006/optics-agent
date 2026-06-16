@@ -1,0 +1,23 @@
+{
+  "run_dir": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v3",
+  "raw_csv": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v3/raw/neff_v2_raw_from_stdout.csv",
+  "final_csv": "/data/public/zhangyuanzheng/comsol-runtime/runs/degiron-2009-fig3-v2-ladder-smoke-v3/results/ladder_smoke_neff.csv",
+  "figure": "",
+  "row_count": 0,
+  "error_count": 7,
+  "errors": [
+    "isolated_su8,5.6000,java.lang.NoClassDefFoundError: Degiron2009Fig3V2ScalarPdeLadderSmoke$1",
+    "isolated_su8,6.6000,java.lang.NoClassDefFoundError: Degiron2009Fig3V2ScalarPdeLadderSmoke$1",
+    "isolated_au,5.6000,java.lang.NoClassDefFoundError: Degiron2009Fig3V2ScalarPdeLadderSmoke$1",
+    "isolated_au,6.6000,java.lang.NoClassDefFoundError: Degiron2009Fig3V2ScalarPdeLadderSmoke$1",
+    "coupled,5.4000,java.lang.NoClassDefFoundError: Degiron2009Fig3V2ScalarPdeLadderSmoke$1",
+    "coupled,5.6000,java.lang.NoClassDefFoundError: Degiron2009Fig3V2ScalarPdeLadderSmoke$1",
+    "coupled,6.6000,java.lang.NoClassDefFoundError: Degiron2009Fig3V2ScalarPdeLadderSmoke$1"
+  ],
+  "methods": [],
+  "cases": [],
+  "coupled_row_count": 0,
+  "plausible_row_count": 0,
+  "physical_reproduction_complete": false,
+  "physical_status": "scalar_tm_hx_pde_candidate"
+}
