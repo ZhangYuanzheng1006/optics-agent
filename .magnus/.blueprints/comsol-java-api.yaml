@@ -1,0 +1,1209 @@
+kind: magnus/skill
+version: '1.0'
+payload:
+  id: comsol-java-api
+  title: COMSOL Java API
+  description: Use when Codex needs to read, write, debug, or summarize COMSOL Java API model files, GUI-exported Java models,
+    geometry/mesh/study/solver/results API calls, COMSOL batch Java files, or convert COMSOL Java API/manual knowledge into
+    executable model templates for optics_agent headless COMSOL workflows.
+  files:
+    - path: agents/openai.yaml
+      content: |+
+        interface:
+          display_name: "COMSOL Java API"
+          short_description: "COMSOL Java model API reference"
+          default_prompt: "Use $comsol-java-api to read, write, or debug a COMSOL Java model file for headless batch execution."
+
+    - path: assets/templates/BasicModel.java
+      content: |
+        import com.comsol.model.*;
+        import com.comsol.model.util.*;
+
+        public class BasicModel {
+          public static Model run() throws Exception {
+            Model model = ModelUtil.create("Model");
+            model.modelNode().create("comp1");
+            model.param().set("L", "1[um]");
+            model.param().set("W", "0.5[um]");
+            model.geom().create("geom1", 2);
+            model.geom("geom1").lengthUnit("um");
+            model.geom("geom1").create("r1", "Rectangle");
+            model.geom("geom1").feature("r1").set("size", new String[]{"L", "W"});
+            model.geom("geom1").feature("r1").set("pos", new String[]{"-L/2", "-W/2"});
+            model.geom("geom1").run();
+            model.mesh().create("mesh1", "geom1");
+            model.mesh("mesh1").autoMeshSize(4);
+            model.mesh("mesh1").run();
+            return model;
+          }
+
+          public static void main(String[] args) throws Exception {
+            Model model = run();
+            if (args.length > 0) model.save(args[0]);
+            System.out.println("BASIC_MODEL_OK");
+          }
+        }
+    - path: assets/templates/BatchSafeModel.java
+      content: |
+        import com.comsol.model.*;
+        import com.comsol.model.util.*;
+
+        public class BatchSafeModel {
+          public static Model run() throws Exception {
+            Model model = ModelUtil.create("Model");
+            model.modelNode().create("comp1");
+            model.param().set("w", "1[um]");
+            model.geom().create("geom1", 2);
+            model.geom("geom1").lengthUnit("um");
+            model.geom("geom1").create("r1", "Rectangle");
+            model.geom("geom1").feature("r1").set("size", new String[]{"w", "w"});
+            model.geom("geom1").run();
+            model.mesh().create("mesh1", "geom1");
+            model.mesh("mesh1").autoMeshSize(5);
+            model.mesh("mesh1").run();
+            return model;
+          }
+
+          public static void main(String[] args) throws Exception {
+            Model model = run();
+            if (args.length > 0) model.save(args[0]);
+          }
+        }
+    - path: assets/templates/GeometrySequence.java
+      content: |
+        import com.comsol.model.*;
+        import com.comsol.model.util.*;
+
+        public class GeometrySequence {
+          public static Model run() throws Exception {
+            Model model = ModelUtil.create("Model");
+            model.modelNode().create("comp1");
+            model.geom().create("geom1", 2);
+            model.geom("geom1").lengthUnit("um");
+            model.geom("geom1").create("box", "Rectangle");
+            model.geom("geom1").feature("box").set("size", new String[]{"4", "2"});
+            model.geom("geom1").feature("box").set("pos", new String[]{"-2", "-1"});
+            model.geom("geom1").create("hole", "Circle");
+            model.geom("geom1").feature("hole").set("r", "0.4");
+            model.geom("geom1").feature("hole").set("pos", new String[]{"0", "0"});
+            model.geom("geom1").create("cut", "Difference");
+            model.geom("geom1").feature("cut").selection("input").set("box");
+            model.geom("geom1").feature("cut").selection("input2").set("hole");
+            model.geom("geom1").feature("cut").set("keep", "off");
+            model.geom("geom1").run();
+            return model;
+          }
+
+          public static void main(String[] args) throws Exception {
+            Model model = run();
+            if (args.length > 0) model.save(args[0]);
+            System.out.println("GEOMETRY_SEQUENCE_OK");
+          }
+        }
+    - path: assets/templates/MeshFreeTri.java
+      content: |
+        import com.comsol.model.*;
+        import com.comsol.model.util.*;
+
+        public class MeshFreeTri {
+          public static Model run() throws Exception {
+            Model model = ModelUtil.create("Model");
+            model.modelNode().create("comp1");
+            model.geom().create("geom1", 2);
+            model.geom("geom1").lengthUnit("um");
+            model.geom("geom1").create("r1", "Rectangle");
+            model.geom("geom1").feature("r1").set("size", new String[]{"2", "1"});
+            model.geom("geom1").run();
+            model.mesh().create("mesh1", "geom1");
+            model.mesh("mesh1").automatic(false);
+            model.mesh("mesh1").feature().create("size1", "Size");
+            model.mesh("mesh1").feature("size1").set("hmax", "0.1");
+            model.mesh("mesh1").feature("size1").set("hmin", "0.01");
+            model.mesh("mesh1").feature().create("ftri1", "FreeTri");
+            model.mesh("mesh1").run();
+            System.out.println("MESH_ELEMENTS " + model.mesh("mesh1").getNumElem());
+            return model;
+          }
+
+          public static void main(String[] args) throws Exception {
+            Model model = run();
+            if (args.length > 0) model.save(args[0]);
+            System.out.println("MESH_FREE_TRI_OK");
+          }
+        }
+    - path: assets/templates/ResultsEvalExport.java
+      content: |
+        import com.comsol.model.*;
+        import com.comsol.model.util.*;
+
+        public class ResultsEvalExport {
+          public static Model run() throws Exception {
+            Model model = ModelUtil.create("Model");
+            model.modelNode().create("comp1");
+            model.geom().create("geom1", 2);
+            model.geom("geom1").create("r1", "Rectangle");
+            model.geom("geom1").feature("r1").set("size", new String[]{"1", "1"});
+            model.geom("geom1").run();
+            model.cpl().create("maxop1", "Maximum", "geom1");
+            model.cpl("maxop1").selection().all();
+            model.physics().create("c", "CoefficientFormPDE", "geom1");
+            model.physics("c").feature("cfeq1").set("c", "1");
+            model.physics("c").feature("cfeq1").set("a", "0");
+            model.physics("c").feature("cfeq1").set("f", "1");
+            model.physics("c").create("dir1", "DirichletBoundary", 1);
+            model.physics("c").feature("dir1").selection().all();
+            model.mesh().create("mesh1", "geom1");
+            model.mesh("mesh1").run();
+            model.study().create("std1");
+            model.study("std1").create("stat", "Stationary");
+            model.sol().create("sol1");
+            model.sol("sol1").study("std1");
+            model.sol("sol1").createAutoSequence("std1");
+            model.sol("sol1").runAll();
+            model.result().dataset().create("dset1", "Solution");
+            model.result().dataset("dset1").set("solution", "sol1");
+            model.result().numerical().create("gev1", "EvalGlobal");
+            model.result().numerical("gev1").set("data", "dset1");
+            model.result().numerical("gev1").set("expr", new String[]{"maxop1(u)"});
+            model.result().table().create("tbl1", "Table");
+            model.result().numerical("gev1").set("table", "tbl1");
+            model.result().numerical("gev1").setResult();
+            double[][] values = model.result().table("tbl1").getReal();
+            if (values.length > 0 && values[0].length > 0) {
+              System.out.println("RESULT_VALUE " + values[0][0]);
+            }
+            return model;
+          }
+
+          public static void main(String[] args) throws Exception {
+            Model model = run();
+            if (args.length > 0) model.save(args[0]);
+            System.out.println("RESULTS_EVAL_EXPORT_OK");
+          }
+        }
+    - path: assets/templates/StudySolverEigenvalue.java
+      content: |
+        import com.comsol.model.*;
+        import com.comsol.model.util.*;
+
+        public class StudySolverEigenvalue {
+          public static Model run() throws Exception {
+            Model model = ModelUtil.create("Model");
+            // Generic Coefficient Form PDE eigenvalue template only.
+            // Do not use this as a Wave Optics/RF mode-analysis model without GUI-exported Java validation.
+            model.modelNode().create("comp1");
+            model.geom().create("geom1", 2);
+            model.geom("geom1").create("r1", "Rectangle");
+            model.geom("geom1").feature("r1").set("size", new String[]{"1", "1"});
+            model.geom("geom1").run();
+            model.physics().create("c", "CoefficientFormPDE", "geom1");
+            model.physics("c").feature("cfeq1").set("c", "1");
+            model.physics("c").feature("cfeq1").set("a", "0");
+            model.physics("c").feature("cfeq1").set("f", "0");
+            model.physics("c").feature("cfeq1").set("da", "1");
+            model.physics("c").create("dir1", "DirichletBoundary", 1);
+            model.physics("c").feature("dir1").selection().all();
+            model.mesh().create("mesh1", "geom1");
+            model.mesh("mesh1").autoMeshSize(4);
+            model.mesh("mesh1").run();
+            model.study().create("std1");
+            model.study("std1").create("eig", "Eigenvalue");
+            model.study("std1").feature("eig").set("neigs", 4);
+            model.study("std1").feature("eig").set("shift", "10");
+            model.sol().create("sol1");
+            model.sol("sol1").study("std1");
+            model.sol("sol1").createAutoSequence("std1");
+            model.sol("sol1").runAll();
+            double[] evals = model.sol("sol1").getPVals();
+            StringBuilder line = new StringBuilder();
+            for (int i = 0; i < evals.length; i++) {
+              if (i > 0) line.append(",");
+              line.append(evals[i]);
+            }
+            System.out.println("EIGENVALUES " + line.toString());
+            return model;
+          }
+
+          public static void main(String[] args) throws Exception {
+            Model model = run();
+            if (args.length > 0) model.save(args[0]);
+            System.out.println("STUDY_SOLVER_EIGENVALUE_OK");
+          }
+        }
+    - path: references/00-index.md
+      content: |
+        # COMSOL Java API Index
+
+        This file solves: choose the smallest reference file needed for a COMSOL Java API task and understand how this skill maps the COMSOL Java API manual into optics_agent workflows.
+
+        ## Source Scope
+
+        - Manual summarized: `docs/COMSOL/COMSOLJavaAPIReferenceGuide.pdf`, COMSOL Java API Reference Guide, version 4.3, 732 pages.
+        - Runtime target: optics_agent currently runs COMSOL 6.3 headless batch.
+        - Rule: use this skill for API shape and common patterns; use COMSOL 6.3 GUI-exported Java for version-sensitive physics feature names and settings.
+
+        ## Manual Chapter Mapping
+
+        | Manual chapter | Main content | Skill files |
+        |---|---|---|
+        | Chapter 1 Introduction | model Java-file structure, compile/run modes, batch command, GUI-generated Java | `07-batch-java-files.md`, `08-gui-exported-java.md`, `BatchSafeModel.java` |
+        | Chapter 2 General Commands | `ModelUtil`, model object, params, variables, functions, selections, materials, physics, coupling operators, study/sol entry points | `01-model-core.md`, `02-general-commands.md` |
+        | Chapter 3 Geometry | geometry sequences, primitives, booleans, work planes, measurements, object/entity lookup | `03-geometry.md`, `GeometrySequence.java` |
+        | Chapter 4 Mesh | mesh sequences, `FreeTri`, `FreeTet`, `Size`, physics-controlled mesh, statistics, errors | `04-mesh.md`, `MeshFreeTri.java` |
+        | Chapter 5 Solver | solution object, solver features, eigenvalue/stationary/time/parametric, matrices, solution vectors | `05-solver-study.md`, `StudySolverEigenvalue.java` |
+        | Chapter 6 Results | datasets, numerical features, solution selection, tables, data/plot export | `06-results-export.md`, `ResultsEvalExport.java` |
+        | Chapter 7 GUI | Java model generated for GUI apps, Swing/SWT GUI details | `08-gui-exported-java.md`; GUI widget details are usually irrelevant for headless batch |
+
+        ## Task Routing
+
+        | Task | Read |
+        |---|---|
+        | Understand a GUI-exported Java model | `08-gui-exported-java.md`, then layer-specific files |
+        | Add or fix model parameters, variables, selections, materials, physics | `01-model-core.md`, `02-general-commands.md` |
+        | Build or debug geometry | `03-geometry.md`, `GeometrySequence.java` |
+        | Replace failed physics-controlled mesh with explicit mesh | `04-mesh.md`, `MeshFreeTri.java` |
+        | Add study, solver, eigenvalue shift, or read eigenvalues | `05-solver-study.md`, `StudySolverEigenvalue.java` |
+        | Extract `neff`, global values, tables, or plot data | `06-results-export.md`, `ResultsEvalExport.java` |
+        | Make a model run under `comsol batch` | `07-batch-java-files.md`, `BatchSafeModel.java`, then `optics-comsol-batch` |
+        | Diagnose batch or solver failure | `10-common-errors.md` |
+        | Build optics waveguide/eigenmode models | `09-api-patterns-for-optics.md`, plus GUI-exported Java or Wave Optics/RF docs |
+
+        ## Object Quick Lookup
+
+        | Object/API | Purpose | Typical call |
+        |---|---|---|
+        | `ModelUtil` | Create/load models, standalone/server setup, progress | `Model model = ModelUtil.create("Model");` |
+        | `Model` | Root model object | `model.param()`, `model.geom()`, `model.study()` |
+        | `modelNode` / `component` | Model/component container. COMSOL 4.3 manual uses `model.modelNode()`. COMSOL 6.x GUI Java may use `model.component("comp1")`. | `model.modelNode().create("comp1");` |
+        | `geom` | Geometry sequence | `model.geom().create("geom1", 2);` |
+        | `mesh` | Mesh sequence | `model.mesh().create("mesh1", "geom1");` |
+        | `material` | Material definitions and property groups | `model.material().create("mat1");` |
+        | `physics` | Physics interface and features | `model.physics().create("emw", "...", "geom1");` |
+        | `study` | Study sequence and steps | `model.study().create("std1");` |
+        | `sol` | Solver sequence and solution data | `model.sol("sol1").createAutoSequence("std1");` |
+        | `result` | Datasets, numerical results, plot groups, tables, exports | `model.result().numerical().create("gev1", "EvalGlobal");` |
+        | `selection` | Explicit or geometric entity selections | `model.selection("sel1").entities(2);` |
+        | `cpl` | Coupling operators | `model.cpl().create("int1", "Integration", "geom1");` |
+
+        ## GUI-Exported Java vs Hand-Written Java
+
+        | Aspect | GUI-exported Java | Hand-written Java |
+        |---|---|---|
+        | Strength | Captures exact feature tags and settings that COMSOL accepted | Short, reviewable, easy to parameterize |
+        | Risk | Verbose and may include stale/unrun sequences | Easy to omit hidden physics, selection, solver, or result settings |
+        | Use in optics_agent | Treat as source of truth for physics/mode-analysis details | Use for minimal probes and reusable templates |
+        | Headless batch | Remove GUI-only logic and ensure solver/result commands are present | Use `public static Model run()` and batch-safe restrictions |
+
+        ## Version Notes
+
+        - COMSOL 4.3 examples often use global `model.geom()`, `model.mesh()`, `model.physics()` style. Some COMSOL 6.x GUI exports use component-scoped calls. Preserve the style of the file being edited.
+        - `model.study("std1").create(...)` appears in current optics_agent probes; the 4.3 manual documents `model.study("std1").feature().create(...)`. If a method fails in 6.3, fall back to the GUI-exported Java style for that runtime.
+    - path: references/01-model-core.md
+      content: |
+        # Model Core
+
+        This file solves: create/load a COMSOL model, manage parameters and model containers, and keep Java model files compatible with optics_agent batch execution.
+
+        ## Common API Pattern
+
+        ```java
+        import com.comsol.model.*;
+        import com.comsol.model.util.*;
+
+        Model model = ModelUtil.create("Model");
+        model.modelNode().create("comp1");
+        model.param().set("lambda0", "1.55[um]");
+        model.param().set("k0", "2*pi/lambda0");
+        ```
+
+        ## `ModelUtil`
+
+        | Method | Use |
+        |---|---|
+        | `ModelUtil.create(tag)` | Create a model and return `Model`. Replaces an existing model with the same tag. |
+        | `ModelUtil.load(tag, filename)` | Load an MPH file. Avoid private paths in reusable templates. |
+        | `ModelUtil.model(tag)` | Get an existing model by tag. |
+        | `ModelUtil.remove(tag)`, `clear()`, `tags()` | Manage loaded model objects. |
+        | `ModelUtil.initStandalone(false)` | Standalone Java setup without GUI widgets. Usually not needed in `comsol batch` model files. |
+        | `ModelUtil.connect(host, port)`, `disconnect()` | Client/server mode. Not the default for Magnus batch jobs. |
+        | `ModelUtil.showProgress(...)` | GUI/file/stdout progress. Avoid file paths in sandboxed batch Java unless validated. |
+
+        ## Parameters
+
+        | Call | Meaning |
+        |---|---|
+        | `model.param().set(name, expr)` | Define a global parameter expression. |
+        | `model.param().set(name, expr, descr)` | Define with description. |
+        | `model.param().get(name)` | Return expression string. |
+        | `model.param().varnames()` | List parameter names. |
+        | `model.param().remove(name)` | Remove parameter. |
+
+        Use COMSOL expressions with units as strings: `"36[nm]"`, `"1.55[um]"`, `"2*pi/lambda0"`.
+
+        ## Model Containers
+
+        - The COMSOL 4.3 manual uses `model.modelNode().create("comp1")` as the model-node container.
+        - COMSOL 6.x GUI-exported Java may use `model.component().create("comp1", true)` and `model.component("comp1").geom(...)`.
+        - Preserve whichever style the target file already uses. Do not mechanically translate component-scoped GUI exports into global calls unless tested.
+
+        ## Batch-Safe Shape
+
+        ```java
+        public class MyModel {
+          public static Model run() throws Exception {
+            Model model = ModelUtil.create("Model");
+            model.modelNode().create("comp1");
+            return model;
+          }
+
+          public static void main(String[] args) throws Exception {
+            Model model = run();
+            if (args.length > 0) model.save(args[0]);
+            System.out.println("MY_MODEL_OK");
+          }
+        }
+        ```
+
+        ## Notes And Common Errors
+
+        - A Java file can compile but fail to produce an MPH if it only has `main()` and does not expose a COMSOL-compatible model path for the runner.
+        - Saving an MPH as Java only records sequences that were explicitly run. Add solver `runAll()` yourself when needed.
+        - Do not read environment variables, system properties, or local files inside `run()` in Magnus batch Java unless that exact pattern has been validated.
+    - path: references/02-general-commands.md
+      content: |
+        # General Commands
+
+        This file solves: manage variables, functions, selections, materials, physics interfaces, and coupling operators in COMSOL Java.
+
+        ## Property Access Pattern
+
+        Most COMSOL objects use the same set/get family:
+
+        ```java
+        feature.set("size", new String[]{"w", "h"});
+        feature.set("pos", new String[]{"x0", "y0"});
+        String value = feature.getString("size");
+        ```
+
+        Returned arrays are copies; mutating a returned array does not change the model.
+
+        ## Variables
+
+        ```java
+        model.variable().create("var1");
+        model.variable("var1").model("comp1");
+        model.variable("var1").set("epsr", "n_core^2");
+        model.variable("var1").selection().geom("geom1", 2);
+        model.variable("var1").selection().set(new int[]{1, 2});
+        ```
+
+        | Method | Use |
+        |---|---|
+        | `model.variable().create(tag)` | Create a variable group. |
+        | `variable(tag).set(name, expr[, descr])` | Define expression. |
+        | `variable(tag).selection().named(sel)` | Scope to named selection. |
+        | `variable(tag).varnames()` | List variables. |
+
+        ## Functions
+
+        ```java
+        model.func().create("int1", "Interpolation");
+        model.func("int1").set("funcname", "nAu");
+        ```
+
+        Common function types include analytic, interpolation, piecewise, rectangle, step, random, and file-backed functions. File-backed function import is risky in Magnus Java sandbox; prefer embedding short tables or load data on runner side.
+
+        ## Materials
+
+        ```java
+        model.material().create("mat1");
+        model.material("mat1").selection().set(new int[]{1});
+        model.material("mat1").propertyGroup("def").set("relpermittivity", "n_core^2");
+        ```
+
+        Exact material property group names and tensor shapes are module/version-sensitive. Use GUI-exported Java to confirm `propertyGroup(...)` and property keys for real optical materials.
+
+        ## Physics Interfaces
+
+        ```java
+        model.physics().create("c", "CoefficientFormPDE", "geom1");
+        model.physics("c").feature("cfeq1").set("c", "1");
+        model.physics("c").create("dir1", "DirichletBoundary", 1);
+        model.physics("c").feature("dir1").selection().all();
+        ```
+
+        | Call | Use |
+        |---|---|
+        | `model.physics().create(tag, physint, geomtag)` | Add physics interface on geometry. |
+        | `model.physics(tag).feature().create(ftag, feature[, dim])` | Add physics feature. |
+        | `physics(tag).feature(ftag).set(key, value)` | Set feature property. |
+        | `physics(tag).feature(ftag).selection().set(...)` | Scope feature to entities. |
+        | `physics(tag).field(fieldname).fieldname(...)` | Override dependent variable names. |
+
+        For Wave Optics/RF, the Java API reference does not provide enough module-specific detail. Confirm interface strings, boundary feature strings, and variable names from Wave Optics/RF docs or GUI-exported Java.
+
+        ## Selections
+
+        ```java
+        model.selection().create("sel_core");
+        model.selection("sel_core").geom("geom1", 2);
+        model.selection("sel_core").set(new int[]{3});
+        model.physics("c").feature("src1").selection().named("sel_core");
+        ```
+
+        | Selection type | Useful keys |
+        |---|---|
+        | explicit | `geom(...)`, `set(...)`, `add(...)`, `remove(...)`, `entities(dim)` |
+        | ball | `entitydim`, `posx`, `posy`, `posz`, `r`, `condition` |
+        | box | `entitydim`, `xmin`, `xmax`, `ymin`, `ymax`, `zmin`, `zmax` |
+        | adjacent | `entitydim`, `outputdim`, `input` |
+
+        Selection/domain mismatch is a common source of silent wrong physics. After geometry changes, re-check entity numbers or use geometry-created named selections.
+
+        ## Coupling Operators
+
+        ```java
+        model.cpl().create("int1", "Integration", "geom1");
+        model.cpl("int1").selection().set(new int[]{1, 2});
+        model.cpl("int1").set("opname", "int_core");
+        ```
+
+        Supported types from the manual: `GeneralExtrusion`, `LinearExtrusion`, `BoundarySimilarity`, `IdentityMapping`, `GeneralProjection`, `LinearProjection`, `Integration`, `Average`, `Maximum`, `Minimum`.
+
+        | Type | Typical use |
+        |---|---|
+        | `Integration` | Integrate field power, loss, or normalization over domains/boundaries. |
+        | `Average` | Average material or field quantities. |
+        | `Maximum` / `Minimum` | Field extrema or mesh/geometry diagnostics. |
+        | `GeneralExtrusion` / `Projection` | Mapping expressions between source and destination geometries. Validate carefully. |
+
+        ## Notes And Common Errors
+
+        - Feature type strings are case-sensitive.
+        - Unit-bearing expressions should be strings, not raw doubles, when units matter.
+        - Module-specific physics keys can compile but be physically wrong; use GUI-exported Java for real Wave Optics models.
+    - path: references/03-geometry.md
+      content: |
+        # Geometry
+
+        This file solves: build, edit, inspect, and debug COMSOL geometry sequences from Java.
+
+        ## Core Sequence
+
+        ```java
+        model.geom().create("geom1", 2);
+        model.geom("geom1").lengthUnit("um");
+        model.geom("geom1").feature().create("r1", "Rectangle");
+        model.geom("geom1").feature("r1").set("size", new String[]{"4", "2"});
+        model.geom("geom1").feature("r1").set("pos", new String[]{"-2", "-1"});
+        model.geom("geom1").run();
+        ```
+
+        COMSOL 4.3 also accepts shorthand used in current probes:
+
+        ```java
+        model.geom("geom1").create("r1", "Rectangle");
+        ```
+
+        Preserve the style of the target file.
+
+        ## Common Feature Types
+
+        | Category | Feature types |
+        |---|---|
+        | 2D primitives | `Rectangle`, `Circle`, `Ellipse`, `Polygon`, `BezierPolygon`, `Square` |
+        | 3D primitives | `Block`, `Sphere`, `Cylinder`, `Cone`, `Torus`, `Ellipsoid`, `Tetrahedron` |
+        | Booleans | `Union`, `Difference`, `Intersection`, `Compose` |
+        | Transforms | `Move`, `Rotate`, `Scale`, `Mirror`, `Array`, `Copy` |
+        | Work planes / 3D from 2D | `WorkPlane`, `Extrude`, `Revolve`, `Sweep` |
+        | Virtual operations | `CompositeEdges`, `CompositeFaces`, `CompositeDomains`, `IgnoreEdges`, `IgnoreFaces`, `FormCompositeFaces` |
+        | Geometry selections | `Selection` |
+
+        ## Settings And Selections
+
+        | Key | Use |
+        |---|---|
+        | `size` | Rectangle/block dimensions. |
+        | `pos` | Feature position. |
+        | `r`, `semiaxes`, `p`, `table` | Circle/ellipse/polygon settings. |
+        | `input` | Objects for boolean/transform operations. |
+        | `input2` | Objects to subtract in `Difference`. |
+        | `keep` | Keep input objects for many operations. |
+        | `createselection` | Create named entity selections from geometry features. |
+        | `repairTol` | Boolean/repair tolerance; tune when close edges/faces cause build errors. |
+
+        Example boolean:
+
+        ```java
+        model.geom("geom1").create("blk", "Rectangle");
+        model.geom("geom1").create("hole", "Circle");
+        model.geom("geom1").create("dif1", "Difference");
+        model.geom("geom1").feature("dif1").selection("input").set("blk");
+        model.geom("geom1").feature("dif1").selection("input2").set("hole");
+        model.geom("geom1").run();
+        ```
+
+        ## Build And Inspect
+
+        | Call | Use |
+        |---|---|
+        | `geom(tag).run(ftag)` | Build through a feature. |
+        | `geom(tag).runPre(ftag)` | Build all preceding features. |
+        | `geom(tag).runAll()` | Build before finalize. |
+        | `geom(tag).run()` | Build all features including finalize/virtual ops. |
+        | `geom(tag).feature(ftag).status()` | Check built/edited/warning/error status. |
+        | `geom(tag).feature(ftag).message()` | First error/warning message. |
+        | `geom(tag).feature(ftag).objectNames()` | Objects produced by a feature. |
+        | `geom(tag).objectNames()` | Objects in the sequence. |
+
+        ## Work Planes
+
+        ```java
+        model.geom().create("geom1", 3);
+        model.geom("geom1").feature().create("wp1", "WorkPlane");
+        model.geom("geom1").feature("wp1").set("quickplane", "xy");
+        model.geom("geom1").feature("wp1").geom().feature().create("r1", "Rectangle");
+        model.geom("geom1").run();
+        ```
+
+        Work-plane subgeometry has its own 2D sequence. For headless reproducibility, keep tags explicit.
+
+        ## Measurements And Entity Lookup
+
+        ```java
+        model.geom("geom1").measure().selection().init(2);
+        model.geom("geom1").measure().selection().set("r1", new int[]{1});
+        double area = model.geom("geom1").measure().getVolume();
+        ```
+
+        Use geometry-created selections or post-build entity lookup before assigning materials/physics. Entity numbers can change after booleans, arrays, or virtual operations.
+
+        ## Export
+
+        Manual APIs include `geom(tag).exportFinal(filename)`, `geom(tag).export(filename)`, and STL/Parasolid options. Avoid geometry file export inside `run()` for Magnus templates unless the runner contract explicitly expects it.
+
+        ## Notes And Common Errors
+
+        - Feature type strings are capitalized and case-sensitive.
+        - Boolean `Difference` needs `input` and `input2`; forgetting `input2` often builds the wrong domain.
+        - `createselection` can create stable named selections such as geometry feature domain/boundary selections; use this to avoid hard-coded domain IDs when possible.
+        - If a feature fails, inspect `message()` and problem details before changing mesh or solver.
+    - path: references/04-mesh.md
+      content: |
+        # Mesh
+
+        This file solves: create explicit mesh sequences, replace failed physics-controlled mesh, read mesh diagnostics, and avoid common headless meshing failures.
+
+        ## Core Sequence
+
+        ```java
+        model.mesh().create("mesh1", "geom1");
+        model.mesh("mesh1").automatic(false);
+        model.mesh("mesh1").feature().create("size1", "Size");
+        model.mesh("mesh1").feature("size1").set("hmax", "0.1[um]");
+        model.mesh("mesh1").feature().create("ftri1", "FreeTri");
+        model.mesh("mesh1").run();
+        ```
+
+        ## Mesh Feature Types
+
+        | Feature | Purpose |
+        |---|---|
+        | `FreeTri` | 2D free triangular mesh. |
+        | `FreeTet` | 3D free tetrahedral mesh. |
+        | `Size` | Element size control. Can be top-level or attribute feature. |
+        | `Distribution` | Number/distribution along edges. |
+        | `BndLayer`, `BndLayerProp` | Boundary layer mesh. |
+        | `Map` | Mapped mesh on structured domains/faces. |
+        | `Refine` | Refine existing mesh. |
+        | `Convert`, `Scale`, `Sweep` | Mesh operations for special workflows. |
+
+        ## Physics-Controlled Mesh
+
+        ```java
+        model.mesh("mesh1").automatic(true);
+        model.mesh("mesh1").autoMeshSize(4);
+        ```
+
+        Physics-controlled mesh updates from active physics when built. It is useful for GUI-generated models, but in Degiron Fig. 3 it failed before solving. For headless probes, prefer explicit `FreeTri`/`FreeTet` with `Size` when mesh failure blocks solver diagnosis.
+
+        ## Feature Status And Diagnostics
+
+        | Call | Use |
+        |---|---|
+        | `mesh(tag).feature(ftag).isBuilt()` | Built state. |
+        | `isEdited()`, `hasError()`, `hasWarning()` | Diagnose sequence state. |
+        | `mesh(tag).clearMesh()` | Clear mesh only. |
+        | `mesh(tag).feature().clear()` | Clear mesh features. |
+        | `mesh().clearMeshes()` | Clear all mesh data. |
+
+        Mesh statistics:
+
+        ```java
+        int n = model.mesh("mesh1").getNumElem();
+        String[] types = model.mesh("mesh1").getTypes();
+        double minq = model.mesh("mesh1").getMinQuality();
+        double meanq = model.mesh("mesh1").getMeanQuality();
+        ```
+
+        ## Mesh Data Access
+
+        ```java
+        double[][] vertices = model.mesh("mesh1").getVertex();
+        int[][] triangles = model.mesh("mesh1").getElem("tri");
+        int[] entity = model.mesh("mesh1").getElemEntity("tri");
+        ```
+
+        Use mesh data APIs for diagnostics or transfer only. Do not build full custom mesh data unless needed; it is easy to break entity mapping.
+
+        ## Boundary Layer Pattern
+
+        ```java
+        model.mesh("mesh1").feature().create("ftri1", "FreeTri");
+        model.mesh("mesh1").feature().create("bl1", "BndLayer");
+        model.mesh("mesh1").feature("bl1").feature().create("blp1", "BndLayerProp");
+        model.mesh("mesh1").feature("bl1").feature("blp1").selection().set(new int[]{1, 2});
+        model.mesh("mesh1").run();
+        ```
+
+        Exact boundary-layer settings are geometry-specific; check GUI-exported Java for `thickness`, `nlayer`, and stretching keys in COMSOL 6.3.
+
+        ## Notes And Common Errors
+
+        - Add mesh features after geometry `run()` unless the GUI export shows a different dependency.
+        - `FreeTri`, `FreeTet`, and `FreeQuad` can produce `MeshError`/`MeshWarning` problem features. Inspect them instead of treating every failure as a solver problem.
+        - For optics, explicitly refine metal, gaps, sharp corners, and high-index interfaces.
+        - A mesh success does not imply physical boundary conditions are correct.
+    - path: references/05-solver-study.md
+      content: |
+        # Study And Solver
+
+        This file solves: create study steps and solver sequences, run them safely, inspect eigenvalue settings, and retrieve solution data.
+
+        ## Study Entry Points
+
+        ```java
+        model.study().create("std1");
+        model.study("std1").feature().create("eig", "Eigenvalue");
+        model.study("std1").feature("eig").set("neigs", 6);
+        ```
+
+        Current optics_agent probes also use:
+
+        ```java
+        model.study("std1").create("eig", "Eigenvalue");
+        ```
+
+        If a method fails, follow the exact style produced by COMSOL 6.3 GUI export.
+
+        | Study type | Use |
+        |---|---|
+        | `Stationary` | Static solve. |
+        | `Time` | Implicit time-dependent solve. |
+        | `Frequency` | Frequency-domain study. Manual notes this as generally allowed by physics. |
+        | `Eigenvalue` | Generic eigenvalue solve. |
+        | `BoundaryModeAnalysis`, `ModeAnalysis` | Wave Optics/RF mode-analysis names are module/version-specific; verify from GUI-exported Java. |
+
+        ## Eigenvalue vs Mode Analysis
+
+        | Concept | What it means | How to validate |
+        |---|---|---|
+        | Generic `Eigenvalue` | Solver/study pattern for a PDE eigenproblem. `StudySolverEigenvalue.java` demonstrates this only with `CoefficientFormPDE`. | Java API Reference and a generic PDE smoke test are enough for syntax. |
+        | Wave Optics/RF `ModeAnalysis` or `BoundaryModeAnalysis` | Physics-module workflow for propagation modes, often returning propagation constant, effective index, and mode fields. | Must come from COMSOL 6.3 GUI-exported Java or Wave Optics/RF docs. |
+        | `lambda` / eigenvalue from `getPVals()` | Generic eigenvalue variable from the solver. | Check solver feature `eigname` and result dataset. |
+        | `beta`, `neff`, `emw.neff`, `ewfd.neff` | Module-defined mode-analysis variables, not guaranteed by the generic Java API. | Inspect GUI result expressions and variable list from the working COMSOL 6.3 model. |
+
+        Do not treat a successful generic eigenvalue template as proof that Wave Optics mode analysis is correct.
+
+        ## Solver Sequence
+
+        ```java
+        model.sol().create("sol1");
+        model.sol("sol1").study("std1");
+        model.sol("sol1").createAutoSequence("std1");
+        model.sol("sol1").runAll();
+        ```
+
+        Manual entry points:
+
+        | Call | Use |
+        |---|---|
+        | `model.sol().create(tag)` | Create solution object. |
+        | `sol(tag).feature().create(ftag, oper)` | Add solver operation feature. |
+        | `sol(tag).createAutoSequence(studyTag)` | Generate solver sequence from study and active physics. |
+        | `sol(tag).run(ftag)`, `runFrom(ftag)`, `runAll()` | Execute solver sequence. |
+        | `sol(tag).clearSolution()` | Clear solution data, keep features. |
+        | `sol(tag).updateSolution()` | Update solution for current model. |
+
+        `createAutoSequence("std1")` is a useful first pass, but it is limited: it generates a default sequence from the study and active physics. It may omit or alter module-specific mode-analysis details, linearization settings, solver attributes, result variables, or boundary/PML assumptions that a GUI-created model needs. For production Wave Optics/RF work, preserve the GUI-exported solver sequence unless a specific simplification is being tested.
+
+        ## Eigenvalue Solver Settings
+
+        ```java
+        model.sol("sol1").feature().create("eig1", "Eigenvalue");
+        model.sol("sol1").feature("eig1").set("neigs", 6);
+        model.sol("sol1").feature("eig1").set("shift", "1.536");
+        model.sol("sol1").feature("eig1").set("rtol", "1e-4");
+        ```
+
+        | Key | Meaning |
+        |---|---|
+        | `neigs` | Number of eigenvalues sought; manual default 6. |
+        | `shift` | Search location; can be real or complex scalar. Critical for mode problems. |
+        | `eigname` | Eigenvalue variable name; manual default `lambda`. |
+        | `eigref` | Linearization point for nonlinear eigenvalue problems. |
+        | `rtol` | Relative tolerance. |
+        | `linpmethod`, `linpsol`, `linpsoluse` | Linearization point settings. |
+        | `maxeigit`, `krylovdim` | Iteration/Krylov controls. |
+        | `solfile`, `solfileblock` | Store solution on temporary file; validate in headless runtime before relying on it. |
+
+        For Wave Optics mode analysis, these are only generic solver settings. The Java API manual does not define the complete physics-specific mode-analysis setup. Use Wave Optics/RF documentation or GUI-exported Java for propagation direction, mode variable, boundary, and solver-sequence details.
+
+        Shift unit risk:
+
+        - In a generic eigenvalue problem, `shift` is in the eigenvalue variable's scale.
+        - In mode analysis, the GUI may express search location as `neff`, `beta`, `kz`, or a module-specific transformed eigenvalue.
+        - Do not mix dimensionless `neff` with dimensional `beta = k0*neff` or `kz` shifts. Compare the GUI-exported Java setting and the study's eigenvalue variable before changing `shift`.
+        - For optics, record whether output is `neff`, `beta`, or raw eigenvalue, and convert explicitly in postprocessing.
+
+        ## Stationary And Parametric
+
+        ```java
+        model.sol("sol1").feature().create("stat1", "Stationary");
+        model.sol("sol1").feature("stat1").set("nonlin", "auto");
+        model.sol("sol1").feature("stat1").feature().create("par1", "Parametric");
+        model.sol("sol1").feature("stat1").feature("par1").set("pname", "w");
+        model.sol("sol1").feature("stat1").feature("par1").set("plistarr", new String[][]{{"1", "2", "3"}});
+        ```
+
+        Common stationary keys: `control`, `nonlin`, `linpmethod`, `linpsol`, `linpsoluse`, `reacf`, `solnum`, `stol`, `storelinpoint`.
+
+        ## Solution Data
+
+        | Call | Use |
+        |---|---|
+        | `sol(tag).getType()` | `Stationary`, `Parametric`, `Time`, or `Eigenvalue`. |
+        | `sol(tag).getPVals()` | Param values, times, or eigenvalues depending on solution type. |
+        | `getPValsImag()` | Imaginary eigenvalue/parameter values. |
+        | `getU()`, `getUImag()` | Solution vector data. |
+        | `getUBlock(...)` | Partial solution vector for large solves. |
+        | `getParamNames()`, `getParamVals()` | Parameter metadata. |
+        | `feature(ftag).getSparseMatrixVal("K")` | Assembled matrix values after an `Assemble`/matrix-producing feature. |
+
+        ## Notes And Common Errors
+
+        - `createAutoSequence("std1")` is the fastest robust start, but GUI-exported Java is better for complex mode-analysis solver stacks.
+        - A solver can run and still return the wrong branch. Always validate output variables and expected ranges.
+        - `Failed to compute the matrix factorization in the eigensolver` may mean bad shift, bad boundary/PML, singular/open domain, wrong physics setup, or bad material/domain selections.
+    - path: references/06-results-export.md
+      content: |
+        # Results And Export
+
+        This file solves: create datasets, evaluate expressions, select solution numbers, use tables, and export results without relying on GUI interaction.
+
+        ## Datasets
+
+        ```java
+        model.result().dataset().create("dset1", "Solution");
+        model.result().dataset("dset1").set("solution", "sol1");
+        ```
+
+        Common dataset feature types: `Solution`, `CutLine2D`, `CutLine3D`, `CutPlane`, `CutPoint1D`, `CutPoint2D`, `CutPoint3D`, `Average`, `Integral`, `Maximum`, `Minimum`, `Surface`, `Contour`, `Mesh`, `Parametric`.
+
+        ## Numerical Evaluation
+
+        ### Global Values
+
+        ```java
+        model.result().numerical().create("gev1", "EvalGlobal");
+        model.result().numerical("gev1").set("data", "dset1");
+        model.result().numerical("gev1").set("expr", new String[]{"lambda"});
+        double[][] real = model.result().numerical("gev1").getReal();
+        double[][] imag = model.result().numerical("gev1").getImag(true, false);
+        ```
+
+        ### Field Values
+
+        ```java
+        model.result().numerical().create("ev1", "Eval");
+        model.result().numerical("ev1").set("data", "dset1");
+        model.result().numerical("ev1").set("expr", new String[]{"u"});
+        double[][][] data = model.result().numerical("ev1").getData();
+        double[][] xyz = model.result().numerical("ev1").getCoordinates();
+        ```
+
+        `Eval` is Java-API specific in the manual and does not appear as a normal GUI feature.
+
+        ## Solution Selection Keys
+
+        | Key | Use |
+        |---|---|
+        | `solnum` | Inner solution number(s). |
+        | `solnumindices` | Alternate indexed selection. |
+        | `outersolnum` | Outer parametric solution index. |
+        | `outersolnumindices` | Alternate outer indexed selection. |
+        | `looplevel`, `looplevelinput` | Multi-level nested solution selection. |
+        | `t`, `interp` | Time interpolation or transient solution selection. |
+        | `solrepresentation` / `solrepresentat` | Whether selection is by solution info or explicit solnum; spelling differs in tables/versions, validate from GUI export. |
+
+        For parameter sweeps, be explicit about outer vs inner solution numbers before trusting result row order.
+
+        ## Tables
+
+        ```java
+        model.result().table().create("tbl1", "Table");
+        model.result().numerical("gev1").set("table", "tbl1");
+        model.result().numerical("gev1").setResult();
+        double[][] tableReal = model.result().table("tbl1").getReal();
+        ```
+
+        Useful table methods: `setTableData`, `getReal`, `getImag`, `getTableData`, `getTableRow`, `clearTableData`.
+
+        ## Exports
+
+        Manual export feature types include `Data`, `Plot`, `Animation`, `Image1D`, `Image2D`, `Image3D`, and `Mesh`.
+
+        ```java
+        model.result().export().create("data1", "Data");
+        model.result().export("data1").set("data", "dset1");
+        model.result().export("data1").set("expr", new String[]{"u"});
+        ```
+
+        For Magnus batch Java, prefer stdout markers or COMSOL tables unless the runner contract explicitly allows a known output path. Avoid Java file IO inside `run()`.
+
+        ## Notes And Common Errors
+
+        - `result variable not found` means the expression is not in scope for the dataset, solution, physics interface, or solver type. For `emw.neff`/`ewfd.neff`, confirm the physics interface and mode-analysis study actually define that variable.
+        - `getImag()` can allocate zeros for real results; do not treat non-null imaginary arrays as proof of complex physics.
+        - Result row/column orientation changes with `columnwise`.
+        - Store a table when a later export or postprocessor needs stable column labels.
+    - path: references/07-batch-java-files.md
+      content: |
+        # Batch Java Files
+
+        This file solves: structure COMSOL Java files so they compile and run under `comsol batch` and the optics_agent runner.
+
+        ## Manual-Derived Java File Shape
+
+        ```java
+        import com.comsol.model.*;
+        import com.comsol.model.util.*;
+
+        public class MyModel {
+          public static void main(String[] args) throws Exception {
+            run();
+          }
+
+          public static Model run() throws Exception {
+            Model model = ModelUtil.create("Model");
+            return model;
+          }
+        }
+        ```
+
+        For optics_agent, prefer `main()` to save `args[0]` if provided:
+
+        ```java
+        public static void main(String[] args) throws Exception {
+          Model model = run();
+          if (args.length > 0) model.save(args[0]);
+          System.out.println("MY_MODEL_OK");
+        }
+        ```
+
+        ## Compile And Run
+
+        Manual commands:
+
+        ```text
+        comsol compile model.java
+        comsol batch -inputfile model.class
+        ```
+
+        Current optics_agent runner compiles Java sources before `comsol batch` and normalizes COMSOL output MPH files. For runner details, use `optics-comsol-batch`.
+
+        ## Batch-Safe Restrictions
+
+        Inside `run()`:
+
+        - Do not call `System.getenv(...)`.
+        - Do not call `System.getProperty(...)`.
+        - Do not use direct Java file IO (`File`, `FileWriter`, `PrintWriter`, etc.).
+        - Avoid inner classes and anonymous classes.
+        - Keep helper methods `static` and simple.
+        - Return the `Model`.
+
+        In `main()`:
+
+        - `model.save(args[0])` is acceptable for output MPH.
+        - `System.out.println(...)` markers are acceptable and useful.
+        - Avoid private local paths.
+
+        ## Recommended Output Pattern
+
+        ```java
+        public static Model run() throws Exception {
+          Model model = ModelUtil.create("Model");
+          // build geometry, mesh, study, solver, result
+          return model;
+        }
+
+        public static void main(String[] args) throws Exception {
+          Model model = run();
+          if (args.length > 0) model.save(args[0]);
+          System.out.println("CASE_OK key=value");
+        }
+        ```
+
+        ## Notes And Common Errors
+
+        - Java compile success is not enough. The runner still needs an MPH output and/or stdout markers.
+        - If the model was exported from GUI before solving, it may not contain `model.sol("sol1").runAll();`.
+        - COMSOL Desktop class-file execution and `comsol batch` are different environments; avoid Desktop-only assumptions.
+    - path: references/08-gui-exported-java.md
+      content: |
+        # GUI-Exported Java
+
+        This file solves: read, trim, and reuse Java files exported from COMSOL Desktop without losing physics or solver details.
+
+        ## What GUI Export Is Good For
+
+        - Treat COMSOL 6.3 GUI-exported Java as the highest-priority source for physics feature tags, boundary condition features, material/selection wiring, study steps, solver sequence, and result variables.
+        - Exact physics interface strings.
+        - Default feature tags and feature type names.
+        - Boundary and domain selections COMSOL accepted.
+        - Study-step and solver-sequence order.
+        - Result variable names and datasets.
+        - Version-specific COMSOL 6.3 API style.
+
+        When the Java API Reference and GUI-exported Java disagree for Wave Optics/RF mode-analysis details, follow the GUI-exported Java first and document the difference.
+
+        ## What To Check First
+
+        1. Imports and public class name.
+        2. `public static Model run()` and whether it returns the model.
+        3. Geometry tags and whether geometry features were run.
+        4. Material/physics selections after geometry build.
+        5. Study feature tags and solver tags.
+        6. Whether `model.sol(...).runAll()` or `model.study(...).run()` is present.
+        7. Result numerical features and exported expressions.
+
+        ## Headless Cleanup
+
+        Remove or ignore for Magnus batch:
+
+        - Swing/SWT GUI panels.
+        - GUI progress widgets.
+        - Java threads used only for GUI responsiveness.
+        - Desktop-only open dialogs or local absolute file paths.
+        - Plot-window setup that is not needed for result extraction.
+
+        Keep:
+
+        - Model creation and model-node/component setup.
+        - Parameters and units.
+        - Geometry, selections, material, physics, mesh.
+        - Study, solver, and result evaluation.
+        - Exact feature type strings and setting keys.
+
+        ## Minimal Patch Pattern
+
+        ```java
+        public static Model run() throws Exception {
+          Model model = ModelUtil.create("Model");
+          // keep GUI-exported model setup here
+          model.sol("sol1").runAll();
+          return model;
+        }
+
+        public static void main(String[] args) throws Exception {
+          Model model = run();
+          if (args.length > 0) model.save(args[0]);
+          System.out.println("GUI_EXPORTED_MODEL_OK");
+        }
+        ```
+
+        ## Notes And Common Errors
+
+        - Do not simplify away selections unless you re-check entity IDs.
+        - Do not replace module-specific physics strings by guessed alternatives.
+        - If a GUI-exported file uses component-scoped calls, keep that style.
+        - GUI chapter content about custom Swing/SWT user interfaces is usually irrelevant to optics_agent headless batch.
+    - path: references/09-api-patterns-for-optics.md
+      content: |
+        # API Patterns For Optics
+
+        This file solves: map COMSOL Java API layers to optics_agent waveguide, eigenmode, and paper-reproduction models, and identify where this Java API manual is insufficient.
+
+        ## Source Split
+
+        - Manual-derived: generic Java API layers for geometry, mesh, study, solver, results.
+        - optics_agent-derived: Degiron 2009 Fig. 3 and COMSOL runtime probes exposed headless batch restrictions, mesh fallback needs, and mode-analysis gaps.
+
+        ## Waveguide/Eigenmode API Layers
+
+        | Layer | API objects | Typical content |
+        |---|---|---|
+        | Parameters | `model.param()` | `lambda0`, `k0`, widths, gaps, thickness sweep, material constants. |
+        | Geometry | `model.geom()` | 2D cross-section, layer stack, metal, dielectric guide, air/substrate/domain truncation. |
+        | Selections | `model.selection()`, geometry `createselection` | Domains for materials; boundaries for scattering/PML/PEC/symmetry. |
+        | Materials | `model.material()` or variables | Complex permittivity/refractive index per domain. |
+        | Physics | `model.physics()` | Wave Optics/RF interface, mode-analysis feature, boundary conditions. |
+        | Mesh | `model.mesh()` | Explicit `FreeTri`/`FreeTet`, size controls near metal/gaps/interfaces. |
+        | Study | `model.study()` | `ModeAnalysis`/`BoundaryModeAnalysis`/`Eigenvalue`/`Frequency`, depending on module and dimension. |
+        | Solver | `model.sol()` | Auto sequence plus eigenvalue shift, number of modes, tolerances. |
+        | Results | `model.result()` | `neff`, `beta`, losses, field profiles, tables/stdout rows. |
+
+        ## What The Java API Manual Does Not Provide
+
+        The Java API reference does not replace:
+
+        - Wave Optics Module User's Guide: exact electromagnetic interface options, mode-analysis settings, ports, scattering/PML boundaries, and variables such as `emw.neff`.
+        - RF Module User's Guide: RF interface strings and boundary mode analysis behavior.
+        - COMSOL Multiphysics Reference Manual: detailed solver theory, eigenvalue solver behavior, advanced solver errors, and version-specific changes.
+
+        Use GUI-exported Java for exact COMSOL 6.3 feature tags and setting keys.
+
+        ## Degiron 2009 Fig. 3 Lessons
+
+        - Java API syntax is official, but hand-written Java is not equivalent to a correct GUI model.
+        - Mode analysis depends on physics feature, boundary, material, mesh, and solver sequence details that were not fully recoverable from the generic Java API manual.
+        - Physics-controlled mesh failed in the actual Degiron run; explicit `FreeTri` mesh was a useful fallback.
+        - Full-vector mode analysis reached the eigensolver but failed matrix factorization across shifts. That is a physical/numerical setup problem, not just a runner problem.
+        - `emw.neff` and `ewfd.neff` are not guaranteed to exist. They depend on the selected physics interface and study type.
+
+        ## Degiron Debug Checklist
+
+        Use this order when a coupled Wave Optics mode-analysis model compiles/saves but fails in the eigensolver:
+
+        1. Confirm pipeline status separately from physics status. A Magnus job success or saved `.mph` only proves the platform contract; it does not prove physical reproduction.
+        2. Stop tuning surrogate/fallback data once the Java/batch path is proven. Use fallback only as a labeled pipeline test.
+        3. Build isolated SU-8 dielectric waveguide first. Validate domain size, boundary/PML, material selection, mesh, `shift`, and expected `neff`.
+        4. Build isolated Au LR-SPP stripe next. Validate complex metal material, boundary/PML, mesh near metal, loss sign, and expected real/imaginary effective index scale.
+        5. Build the coupled Au+SU8 system only after both isolated models return plausible modes.
+        6. Use a minimal COMSOL 6.3 GUI-exported Java mode-analysis template for the first isolated Wave Optics/RF model. Treat it as the source for physics feature tags, boundaries, study, solver sequence, and result variables.
+        7. Check all domain and boundary selections after every geometry change; do not rely on stale entity IDs.
+        8. Record whether each output is `neff`, `beta`, or raw eigenvalue before comparing branches.
+
+        ## Notes And Common Errors
+
+        - Do not report a surrogate/fallback sweep as a physical COMSOL reproduction.
+        - If mode-analysis settings are unknown, explicitly request or generate a minimal GUI-exported Java template rather than guessing.
+        - Keep stdout CSV markers simple when COMSOL Java sandbox blocks file output.
+    - path: references/10-common-errors.md
+      content: |
+        # Common Errors
+
+        This file solves: diagnose common COMSOL Java API, headless batch, mesh, solver, and result extraction failures in optics_agent.
+
+        ## Batch And Java Structure
+
+        | Symptom | Likely cause | Action |
+        |---|---|---|
+        | Java compiles but no output MPH | `run()` missing, model not returned, runner expects output filename, or `main()` did not save | Add `public static Model run()`, return model, and `if (args.length > 0) model.save(args[0]);` in `main()`. |
+        | `OUTPUT_MPH_MISSING` | COMSOL did not create the normalized MPH output | Inspect stdout/stderr and generated file names; use `BatchSafeModel.java` shape. |
+        | Sandbox/security exception | `System.getenv`, `System.getProperty`, or Java file IO inside `run()` | Move data transfer to stdout markers, COMSOL tables, or runner-side postprocessing. |
+        | Class execution error with helpers | Inner class or anonymous class not accepted by COMSOL runtime | Use one public class and static helper methods. |
+        | Empty stdout marker / runner manifest | Model crashed before marker, marker misspelled, or stdout parsing expected different prefix | Print a unique `CASE_OK` marker after solve and before exit. |
+
+        ## Geometry And Selection
+
+        | Symptom | Likely cause | Action |
+        |---|---|---|
+        | Material/physics applied to wrong region | Hard-coded domain IDs changed after geometry edit | Use geometry-created named selections or re-query entities after `geom.run()`. |
+        | Boolean output wrong | Missing `input`/`input2`, wrong `keep`, or wrong feature order | Inspect geometry object names and feature status. |
+        | Boundary condition missing | Selection dimension mismatch | Confirm entity dimension: 2D domains use dim 2; boundaries use dim 1. |
+
+        ## Mesh
+
+        | Symptom | Likely cause | Action |
+        |---|---|---|
+        | Physics-controlled mesh failed | Physics heuristics could not mesh thin/high-contrast geometry | Switch to explicit `FreeTri`/`FreeTet` with `Size` controls. |
+        | Mesh warning but solve continues | Some entities failed or quality is poor | Inspect `hasWarning()`, min quality, and mesh statistics. |
+        | Too many elements | Overly small global `hmax` | Apply local size selections near metal/gaps instead of globally. |
+
+        ## Solver
+
+        | Symptom | Likely cause | Action |
+        |---|---|---|
+        | Eigensolver matrix factorization failed | Bad shift, singular/open domain, bad boundary/PML, wrong physics mode setup, bad material selections | Try isolated validation model, different shifts, explicit boundaries/PML, and GUI-exported mode-analysis settings. |
+        | No eigenvalues near expected branch | `shift` wrong or variable units mismatch | Set `shift` in the units/scale expected by the study; compare to GUI export. |
+        | Solver sequence missing | GUI export did not include a run command or hand-written file omitted solver | Use `createAutoSequence("std1")` and `runAll()`, or preserve GUI solver sequence. |
+        | Study type unsupported | Physics interface does not support chosen study | Confirm with GUI-exported Java or module documentation. |
+
+        ## Results
+
+        | Symptom | Likely cause | Action |
+        |---|---|---|
+        | `emw.neff` / `ewfd.neff` not found or unreliable | Wrong physics interface, wrong study type, changed module tag, no mode-analysis variable, or variable not defined for that solution | Inspect COMSOL 6.3 GUI result expressions; verify whether the model exposes `neff`, `beta`, `kz`, or raw eigenvalue; do not invent variable names from the Java API Reference. |
+        | Empty table | Numerical feature not evaluated or wrong `data`/`table` property | Call `setResult()` or `getReal()` after setting `data`, `expr`, and solution selection. |
+        | Wrong sweep row order | Confused inner/outer solution numbers | Set `solnum`, `outersolnum`, `looplevel`, and record row mapping explicitly. |
+        | Complex result mishandled | Imaginary array allocated as zeros or expression is real | Check `isComplex()` before interpreting imaginary data. |
+
+        ## Extra Manuals Needed
+
+        - Wave Optics Module User's Guide: required for production electromagnetic mode-analysis settings.
+        - RF Module User's Guide: required when using RF electromagnetic interfaces or boundary mode analysis.
+        - COMSOL Multiphysics Reference Manual: required for deep solver diagnostics and advanced solver feature semantics.
+    - path: SKILL.md
+      content: |
+        ---
+        name: comsol-java-api
+        description: Use when Codex needs to read, write, debug, or summarize COMSOL Java API model files, GUI-exported Java models, geometry/mesh/study/solver/results API calls, COMSOL batch Java files, or convert COMSOL Java API/manual knowledge into executable model templates for optics_agent headless COMSOL workflows.
+        ---
+
+        # COMSOL Java API
+
+        Use this skill for COMSOL Java syntax and model-file structure: GUI-exported Java, hand-written model Java files, geometry/mesh/study/solver/result API calls, and batch-safe Java templates.
+
+        ## Boundaries
+
+        - COMSOL runtime image, license, mounts, and Magnus paths: use `optics-comsol-runtime`.
+        - COMSOL batch runner contract, run modes, and output manifest: use `optics-comsol-batch`.
+        - Magnus job launch/status/logs, FileSecret, MAGNUS_RESULT/ACTION, and platform file flow: use `optics-magnus-platform`.
+        - Paper-figure reproduction planning and reports: use `optics-paper-reproduction`.
+        - Java API object syntax, feature tags, settings, and templates: use this skill.
+
+        ## Quick Workflow
+
+        1. Prefer a GUI-exported Java model as the source of truth for physics feature tags, boundary conditions, study steps, and solver sequences.
+        2. Identify which layer is being edited: model core, geometry, mesh, study/solver, results/export, or batch wrapper.
+        3. Read only the relevant reference file below, starting with `references/00-index.md`.
+        4. Preserve tags, feature type strings, selections, units, and solver sequence order when patching Java.
+        5. For optics_agent batch runs, keep `public static Model run()` returning the model, then let `main(String[] args)` save `args[0]` if provided.
+        6. Run a batch smoke test through the existing COMSOL batch tooling after editing an executable model.
+
+        ## API Principles
+
+        - Treat the bundled COMSOL Java API manual as API-reference material, not as proof that a physics model is correct.
+        - The Java API Reference can verify API syntax and object patterns; it cannot by itself prove a Wave Optics/RF mode-analysis physics model is well posed.
+        - The manual used for this skill is COMSOL 4.3; the active optics_agent runtime is COMSOL 6.3. Validate version-sensitive feature names, setting keys, and solver-sequence structure against COMSOL 6.3 GUI-exported Java.
+        - Hand-written Java should keep stable tags for geometry, selections, physics, study, solver, datasets, numerical results, and tables.
+        - Avoid `System.getenv`, `System.getProperty`, direct Java file IO inside `run()`, inner classes, and anonymous classes in Magnus/COMSOL batch Java unless that exact pattern has been validated.
+        - Mark uncertain physics-specific setting keys as requiring GUI-exported Java validation instead of guessing.
+
+        ## References
+
+        - `references/00-index.md`: routing, manual chapter mapping, object quick lookup.
+        - `references/01-model-core.md`: `ModelUtil`, model object, parameters, model nodes/components.
+        - `references/02-general-commands.md`: variables, functions, materials, physics, selections, coupling operators.
+        - `references/03-geometry.md`: geometry sequences, primitives, booleans, work planes, measurements.
+        - `references/04-mesh.md`: mesh sequences, `FreeTri`, `FreeTet`, `Size`, boundary layers, mesh diagnostics.
+        - `references/05-solver-study.md`: study and solver sequences, `createAutoSequence`, eigenvalue settings, solution data.
+        - `references/06-results-export.md`: datasets, numerical evaluations, solution selection, tables, exports.
+        - `references/07-batch-java-files.md`: COMSOL Java-file structure, compile/run modes, headless-safe wrapper.
+        - `references/08-gui-exported-java.md`: how to read and reuse GUI-exported Java.
+        - `references/09-api-patterns-for-optics.md`: optics_agent waveguide/eigenmode patterns and gaps.
+        - `references/10-common-errors.md`: compile, batch, mesh, solver, result, and runner failure diagnosis.
+
+        ## Templates
+
+        Copy from `assets/templates/` when starting a new model:
+
+        - `BasicModel.java`: model creation, params, simple geometry, mesh, save.
+        - `GeometrySequence.java`: primitives, boolean difference, stable geometry tags.
+        - `MeshFreeTri.java`: explicit user-controlled triangular mesh with size feature.
+        - `StudySolverEigenvalue.java`: generic PDE eigenvalue study and `getPVals()`.
+        - `ResultsEvalExport.java`: numerical evaluation and table pattern without Java file IO in `run()`.
+        - `BatchSafeModel.java`: minimal batch-safe `run()` plus `main()` that only saves `args[0]` when provided.
+exported_at: '2026-06-16T10:22:35.809Z'
