@@ -1,0 +1,5 @@
+interface:
+  display_name: "COMSOL Java API"
+  short_description: "COMSOL Java model API reference"
+  default_prompt: "Use $comsol-java-api to read, write, or debug a COMSOL Java model file for headless batch execution."
+

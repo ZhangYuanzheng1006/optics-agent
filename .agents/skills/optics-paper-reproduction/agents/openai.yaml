@@ -1,0 +1,4 @@
+interface:
+  display_name: "Optics Paper Reproduction"
+  short_description: "Plan and audit optics paper figure reproductions."
+  default_prompt: "Use optics-paper-reproduction to turn a target optics paper figure into a reproducible parameter table, numerical workflow, validation checklist, failure log, and handoff report."
