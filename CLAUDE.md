@@ -93,10 +93,11 @@ Project skills live in:
 .codex/skills/
 ```
 
-Claude skills are synchronized by a Windows junction:
+Claude and Agents skills are synchronized by Windows junctions:
 
 ```text
 .claude/skills -> .codex/skills
+.agents/skills -> .codex/skills
 ```
 
 Edit `.codex/skills` as the canonical path. Read the relevant `SKILL.md` completely before acting on a matching task.
@@ -128,7 +129,7 @@ When project rules change, update the persistent rule surfaces in the same task:
 python C:\Users\27370\.codex\skills\.system\skill-creator\scripts\quick_validate.py .codex\skills\<skill-name>
 ```
 
-4. If the change affects Claude behavior, confirm `.claude/skills` still points to `.codex/skills`.
+4. If the change affects Claude or Agents behavior, confirm `.claude/skills` and `.agents/skills` still point to `.codex/skills`.
 5. Keep `CLAUDE.md` synchronized with `AGENTS.md`. In this repo, `CLAUDE.md` should be a hard link to `AGENTS.md`; do not replace it with divergent content.
 
 If an editor or patch tool breaks the hard link, recreate it after merging content:

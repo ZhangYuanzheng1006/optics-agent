@@ -90,6 +90,9 @@ Use them as workflow evidence, not as successful physical reproduction evidence:
 ```text
 AGENTS.md
 CLAUDE.md
+.codex/skills/
+.claude/skills -> .codex/skills
+.agents/skills -> .codex/skills
 comsol/runtime/
 comsol/automation/submit_comsol.py
 comsol/automation/sync_comsol_runtime_to_gustation.py
@@ -108,5 +111,5 @@ docs/magnus/magnus_ai4s_0604_useful_notes.md
 - Use `python comsol\automation\submit_comsol.py --save-only` after changing the COMSOL blueprint.
 - For Magnus file flow, prefer: temporary user files via `FileSecret`, persistent code/license/results via mounts, admin handoff via SSH/SCP to `/data/public/zhangyuanzheng`.
 - Keep long logs and plans in Markdown files; summarize only the high-signal lines to the user.
-- Treat `AGENTS.md` as the always-on project rulebook. `CLAUDE.md` should be a hard link to `AGENTS.md`; if project rules change, update `AGENTS.md` and the relevant `.codex/skills/*/SKILL.md` together.
+- Treat `AGENTS.md` as the always-on project rulebook. `CLAUDE.md` should be a hard link to `AGENTS.md`; if project rules change, update `AGENTS.md` and the relevant `.codex/skills/*/SKILL.md` together. `.codex/skills` is canonical; `.claude/skills` and `.agents/skills` should remain junctions to it.
 - For long-running reproductions, keep the report state current enough that a PI-facing WeChat update can be generated from `final_report.md`, `workflow_handoff*.md`, and `todo.md` without rereading raw logs.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Optics COMSOL Runtime"
+  short_description: "Validated COMSOL runtime on Magnus."
+  default_prompt: "Use the validated COMSOL runtime blueprint on Magnus."
