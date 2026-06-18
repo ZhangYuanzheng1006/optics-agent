@@ -23,6 +23,9 @@ Paper reproduction is a regression test for blueprint iteration, not the final o
 
 ## Current Project Status
 
+- **Mie theory analytical reproduction** (new, 2026-06): Assigned by optics group to build analytical/semi-analytical scattering models for sphere arrays. All Python, no COMSOL needed. See `reproduction_test/mie_internal_plan.md` and `mie_theory_plan.md`.
+- **Agent skill & workflow self-iteration survey** completed. See `notes/agent_skill_self_iteration/`.
+- **Workflow engine design** in progress. See `notes/workflow_engine_design.md`.
 - COMSOL/Magnus runtime exists and is usable through the active Magnus image:
 
 ```text
@@ -158,6 +161,7 @@ Current routing:
 |---|---|
 | Project routing, goals, credentials, important files | `optics-agent-core` |
 | Paper figure reproduction, parameter tables, missing-info analysis, handoff reports, workflow-based reproduction | `optics-paper-reproduction` + `workflows/paper_reproduction.workflow.yaml` |
+| Mie theory analytical/semi-analytical calculations, sphere array effective medium, Python-only scattering models | `optics-paper-reproduction` + `reproduction_test/mie_internal_plan.md` |
 | COMSOL runtime image, active Magnus-local image, license mounts, runtime folder | `optics-comsol-runtime` |
 | COMSOL batch/headless jobs, `.java`/`.mph`/`.m`, smoke cases, manifest contract | `optics-comsol-batch` |
 | COMSOL Java API syntax, GUI-exported Java, feature/study/solver tags | `comsol-java-api` |

@@ -26,6 +26,12 @@ Group-meeting direction:
 - Aim for one complete blueprint to cover multiple paper reproductions and then support new-case exploration.
 - Develop a small case/DSL layer so papers, parameters, sweeps, metrics, resources, and failures are machine-readable instead of scattered across scripts and notes.
 
+## Recent Work (2026-06)
+
+- **Agent skill & workflow self-iteration survey**: `notes/agent_skill_self_iteration/` — covers skill system design, self-improving agents, tool use, meta-cognition, SWE agents, framework comparison, and scientific computing agents.
+- **Workflow engine design**: `notes/workflow_engine_design.md` — YAML-declared dual-agent (supervisor/worker) workflow system with MCP communication, branch routing, experience notes, and self-iteration.
+- **Mie theory reproduction**: `reproduction_test/mie_internal_plan.md` — analytical Mie scattering models for sphere arrays, Python-only, 6-week plan covering single sphere → multilayer → arrays → effective medium.
+
 Keep local development in:
 
 ```text

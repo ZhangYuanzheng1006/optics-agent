@@ -22,6 +22,13 @@ For complex multi-step reproductions, use the declarative workflow system:
 - Update `workflows/state/<session>.yaml` after each node.
 - The `update_artifacts` node handles SKILL/workflow self-iteration.
 
+For Mie theory analytical/semi-analytical reproductions (2026-06):
+
+- All Python, no COMSOL. See `reproduction_test/mie_internal_plan.md` for the execution plan.
+- Papers are in `papers/mie/` (non-arXiv ones) or accessible via arXiv.
+- Core codes go in `reproduction_test/mie/code/`.
+- Every calculation must pass the 5 physical checks: energy conservation, Rayleigh limit, large-size limit, quasi-static LSPR, low-filling MG limit.
+
 ## Workflow
 
 1. Scope the target figure.
