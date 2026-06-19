@@ -57,6 +57,24 @@ For current workflow-engine design, prioritize these papers first:
 14. `safety_governance/2406.13352_AgentDojo_Dynamic_Environment_Attacks.pdf`
 15. `evaluation_benchmarks/2605.21404_Pilot_Audit_LLM_Agent_Benchmark_Papers.pdf`
 
+## Per-Folder Summaries
+
+Each PDF-containing folder now has a Chinese `README_summaries.md` with one entry per paper. The summary format is consistent across subfolders: one-sentence conclusion, core contribution, workflow lessons, warnings, concrete design hooks for `optics_agent`, and priority.
+
+- `agent_skills/README_summaries.md`
+- `workflow_optimization/README_summaries.md`
+- `multi_agent_orchestration/README_summaries.md`
+- `memory_lifelong/README_summaries.md`
+- `evaluation_benchmarks/README_summaries.md`
+- `safety_governance/README_summaries.md`
+- `scientific_agents/README_summaries.md`
+- `tool_use/README_summaries.md`
+- `coding_agents/README_summaries.md`
+- `planning_reasoning/README_summaries.md`
+- `frameworks/README_summaries.md`
+- `failures/README_summaries.md`
+- `surveys/README_summaries.md`
+
 ## Design Questions To Extract From Reading
 
 When reading these papers, extract answers to these project-specific questions:

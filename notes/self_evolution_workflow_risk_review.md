@@ -1,11 +1,11 @@
 # Self-Evolution Workflow Risk Review
 
 > 2026-06-19
-> Scope: review of downloaded self-evolution papers under `papers/self-evolution/`, focused on risks in the current `optics_agent` workflow plan.
+> Scope: review of downloaded self-evolution / agent-workflow papers under `papers/self-evolution/`, focused on risks in the current `optics_agent` workflow plan.
 
 ## Executive Summary
 
-The current `optics_agent` workflow design is a useful orchestration plan, but it is not yet a rigorous self-evolving system. It has a workflow graph, worker/supervisor separation, retry logic, notes, and an `update_artifacts` node. The papers suggest this is insufficient: successful self-evolving systems depend on executable verification, evidence-driven skill lifecycle management, bounded memory/skill injection, replay tests, and rollback gates.
+The current `optics_agent` workflow design is a useful orchestration plan, but it is not yet a rigorous self-evolving system. It has a workflow graph, worker/supervisor separation, retry logic, notes, and an `update_artifacts` node. The expanded 127-paper review suggests this is insufficient: successful self-evolving systems depend on executable verification, evidence-driven skill lifecycle management, bounded memory/skill injection, workflow provenance, benchmark disclosure, sandboxed tool use, replay tests, and rollback gates.
 
 The most important risk is not that the workflow will fail once. The risk is that it will appear to improve while silently accumulating misleading skills, over-generalized lessons, and increasingly brittle workflow edits. This is exactly the pattern described by Library Drift, Skill Shadowing, Forgetting, and Misevolution papers.
 
@@ -13,7 +13,7 @@ Immediate conclusion:
 
 ```text
 Current plan = workflow orchestration + retrospective editing
-Needed plan  = workflow orchestration + verifiers + evidence log + librarian + replay gate
+Needed plan  = workflow orchestration + verifiers + evidence log + provenance + librarian + replay gate + sandbox
 ```
 
 ## Papers Read
@@ -41,6 +41,18 @@ Needed plan  = workflow orchestration + verifiers + evidence log + librarian + r
 - `2508.07407` A Comprehensive Survey of Self-Evolving AI Agents
 - `2606.17546` SEAGym: An Evaluation Environment for Self-Evolving LLM Agents
 - `2606.08106` PACE: Anytime-Valid Acceptance Tests for Self-Evolving Agents
+
+### Expanded Workflow, Skill, Memory, Safety, And Scientific-Agent Papers
+
+The review was later expanded to **127 PDFs** with per-folder summaries in `papers/self-evolution/*/README_summaries.md`. The most relevant new groups are:
+
+- `workflow_optimization/`: AFlow, Benchmarking Agentic Workflow Generation, JudgeFlow, QualityFlow, Externalization, workflow provenance.
+- `agent_skills/`: Agent Skills, SkillOps, SkillTester, Skill Drift, SkillWiki, SkillRevise, SkillGrad, skill supply-chain and prompt-injection papers.
+- `multi_agent_orchestration/`: AgentOrchestra, MAFBench, AutoGen, MetaGPT, CAMEL, Echoing, plan reuse.
+- `memory_lifelong/`: Memory for Autonomous LLM Agents, MemEvoBench, memory evaluation, feedback-to-memory, hierarchical procedural memory.
+- `evaluation_benchmarks/`: AEMA, LLM agent benchmark audit, uncertainty decomposition, self-evolving agent surveys.
+- `safety_governance/`: ToolEmu, AgentDojo, AgentGuard, SafeSearch, VESTA.
+- `scientific_agents/`: AI Scientist, AI-Researcher, autonomous scientific discovery surveys, Why LLMs Aren't Scientists Yet.
 
 ## What The Literature Says
 
@@ -246,6 +258,421 @@ Supervisor should not be treated as a helper that makes completion faster. Its r
 - detect workflow bloat
 - detect missing physical verifier evidence
 
+## Additional Risks From The Expanded 127-Paper Review
+
+The first review focused on classic self-evolution failure modes. The expanded literature adds a broader warning: once skills, memories, workflows, tools, provenance stores, and multi-agent roles are externalized, the system can fail even when every single component looks reasonable in isolation.
+
+### 8. Workflow Topology Can Be Wrong Even When The Final Output Looks Good
+
+Papers: `2410.07869` Benchmarking Agentic Workflow Generation, `2410.10762` AFlow, `2601.07477` JudgeFlow.
+
+Current risk:
+
+```text
+The generated workflow may omit dependency edges, skip required nodes, or route around weak verifiers while still producing a plausible final report.
+```
+
+Examples for `optics_agent`:
+
+- generating code before `physics_formalization` is complete
+- comparing plots before unit/material parameters are verified
+- running `final_report` from a diagnostic/surrogate output path
+- optimizing workflow search against weak rewards such as file existence or report completeness
+
+Controls:
+
+- score workflow structure separately from final result quality
+- validate required nodes, dependency edges, and data dependencies
+- make workflow reward multi-objective: physical verifier score, topology validity, cost, reproducibility, and report honesty
+- require `block_blame` records to include evidence and confidence; low-confidence attribution cannot drive automatic topology edits
+
+### 9. Externalized Harness Components Create Version-Coupling Risk
+
+Papers: `2604.08224` Externalization in LLM Agents, `2509.13978` Workflow Provenance.
+
+Current risk:
+
+```text
+AGENTS.md, SKILL.md, workflow YAML, memory search results, tool versions, model versions, and container images jointly determine behavior, but the run may only record the final artifacts.
+```
+
+This makes apparent improvements non-attributable. A case may improve because the model changed, a skill changed, memory search returned a different item, a COMSOL image changed, or the workflow changed.
+
+Controls:
+
+```yaml
+run_manifest:
+  workflow_version:
+  case_workflow_hash:
+  agents_policy_hash:
+  skill_versions: []
+  loaded_memories: []
+  model:
+  inference_params:
+  tool_versions: []
+  container_or_runtime_digest:
+  commands_run: []
+  artifacts_read:
+    - path:
+      hash:
+      producer_node:
+  artifacts_written:
+    - path:
+      hash:
+      producer_node:
+```
+
+Provenance answers must cite artifact IDs and distinguish:
+
+```text
+logged fact | inference from logs | missing information | unknown
+```
+
+### 10. Skill Artifacts Are Supply-Chain Objects, Not Just Text Instructions
+
+Papers: `2602.12430` Agent Skills, `2604.03081` Supply-Chain Poisoning, `2510.26328` Agent Skills Prompt Injections, `2604.02837` Secure Agent Skills.
+
+Current risk:
+
+```text
+A skill can contain SKILL.md prose, code blocks, helper scripts, config files, examples, and resources. Treating only the markdown as the skill misses the actual attack or drift surface.
+```
+
+Project-specific risks:
+
+- malicious or wrong backup/sync snippets copied from a skill example
+- helper scripts reading `reproduction_test/private/` or secret-adjacent paths despite benign prose
+- third-party skill instructions embedded as trusted system-like text
+- stale COMSOL/Magnus snippets becoming active operational policy
+
+Controls:
+
+- treat skill packages as supply-chain artifacts: markdown + scripts + configs + resources
+- scan for declared vs actual capabilities
+- candidate skills are read-only and cannot execute high-risk actions
+- promotion requires static review, dry-run behavior, permission declaration, and provenance
+- never convert web/PDF/README text directly into active skill instructions
+
+### 11. Skill Behavioral Integrity Can Fail Across Text And Code
+
+Papers: `2605.11770` Behavioral Integrity Verification, `2606.14154` SkillMutator, `2605.00314` Semia.
+
+Current risk:
+
+```text
+SKILL.md may say one thing while helper scripts, shell commands, or hidden initialization behavior do something broader.
+```
+
+Controls:
+
+```yaml
+skill_integrity:
+  declared_capabilities: []
+  actual_capabilities: []
+  privileged_operations: []
+  private_path_access: false
+  network_access: false
+  shell_access: false
+  writes_canonical_artifacts: false
+  mismatch_policy: block_promotion
+```
+
+If actual behavior touches filesystem writes, shell, network, credentials, external services, or canonical artifacts without explicit declaration, the skill must remain quarantined.
+
+### 12. Typed Skill Refactoring Can Lose Applicability Boundaries
+
+Papers: `2605.27955` Skill-as-Pseudocode, `2605.17734` Skill Programs, `2606.01139` SkillRevise, `2605.27760` SkillGrad.
+
+Current risk:
+
+```text
+Turning prose lessons into typed contracts, pseudocode, or executable interventions can make them easier to invoke but easier to over-apply.
+```
+
+Examples:
+
+- “Degiron v2 mode analysis needed GUI-exported templates” becomes “all COMSOL mode analysis requires template before trying anything”
+- “Do not overclaim surrogate results” becomes a generic report blocker that fires on legitimate low-risk diagnostics
+- a skill program auto-blocks or rewrites workflow steps beyond its intended scope
+
+Controls:
+
+- every typed/refactored skill must retain source text links
+- every action template must define `applies_when` and `does_not_apply_when`
+- executable skill programs may diagnose/block but cannot directly execute external actions unless separately approved
+- refactoring requires coverage, binding, replacement, and risk checks before promotion
+
+### 13. Multi-Agent Review Can Collapse Into Echoing Or Identity Drift
+
+Papers: `2511.09710` Echoing, `2602.03128` MAFBench, AutoGen/CAMEL/MetaGPT family.
+
+Current risk:
+
+```text
+Adding reviewer/expert agents does not guarantee independence. Agents can echo each other, defend previous outputs, or lose role boundaries in long conversations.
+```
+
+Project-specific risks:
+
+- reviewer starts summarizing worker claims instead of checking artifacts
+- COMSOL expert overrules physics uncertainty because supervisor framed the task as implementation failure
+- supervisor compresses context so aggressively that independent reviewer cannot see raw evidence
+- multi-agent consensus amplifies a wrong physical interpretation
+
+Controls:
+
+- each role prompt must declare `role`, `object_to_check`, `forbidden_actions`, `required_evidence`, and `confidence`
+- reviewer must cite original artifacts/verifier outputs, not only worker text
+- role sessions should have bounded turns; long exchanges trigger identity-drift checks
+- complex agent group workflows must track coordination cost and allow `single_agent` or `direct_tool` routing for simple tasks
+
+### 14. Plan Reuse And Template Reuse Can Import Wrong Assumptions
+
+Papers: `2512.21309` Plan Reuse Mechanism, workflow-template papers, scientific-agent papers.
+
+Current risk:
+
+```text
+case_workflow templates may be selected by semantic similarity but silently carry old geometry, material, solver, or reporting assumptions.
+```
+
+Controls:
+
+```yaml
+template_contract:
+  slots: []
+  fixed_assumptions: []
+  required_inputs: []
+  required_verifiers: []
+  does_not_apply_when: []
+  forbidden_reuse_conditions: []
+```
+
+Template reuse must pass premise matching before execution. Similar title/abstract embedding is not enough.
+
+### 15. Memory Retrieval Can Be Harmful When Memory Types Are Mixed
+
+Papers: `2605.28224` When Does Memory Help, `2507.05257` MemoryAgentBench, `2604.15774` MemEvoBench, `2601.05960` Feedback-to-Memory.
+
+Current risk:
+
+```text
+facts, raw observations, failed attempts, reviewer feedback, reflections, procedures, and policy rules are retrieved from the same pool.
+```
+
+Consequences:
+
+- failed COMSOL traces can pollute Python-only Mie tasks
+- one-off reviewer feedback can become a long-term policy
+- old and corrected memories coexist without supersession
+- the system remembers an item but does not apply it faithfully in the right node
+
+Controls:
+
+```yaml
+loads_memories:
+  allowed_types:
+    - fact
+    - procedure
+  forbidden_types:
+    - raw_failed_attempt
+  scope: project
+  max_items: 5
+  require_supersession_check: true
+```
+
+Memory evaluation should test retrieval, test-time learning, long-range integration, selective forgetting, and conflict resolution.
+
+### 16. Graph Memory Can Freeze Wrong Causal Attributions
+
+Papers: `2602.05665` Graph-based Agent Memory, provenance papers.
+
+Current risk:
+
+```text
+Automatically linking failures with `caused_by` or `mitigated_by` edges can turn weak correlations into durable debugging bias.
+```
+
+Example:
+
+```text
+COMSOL matrix factorization failure -> caused_by eigenvalue shift
+```
+
+This may be wrong; the cause may be physics setup, boundary condition, mesh, missing template, or solver configuration.
+
+Controls:
+
+- memory graph edges need `edge_type`, `weight`, `evidence`, and `confidence`
+- automatic `caused_by` and `mitigated_by` edges default to low confidence
+- verified causes require counterfactual evidence or repeatable verifier checks
+- reports must distinguish observed correlation from verified cause
+
+### 17. Benchmark And Evaluation Disclosure Can Be Too Weak To Support Claims
+
+Papers: `2605.21404` benchmark audit, `2601.11903` AEMA, `2507.21504` agent evaluation survey.
+
+Current risk:
+
+```text
+The workflow may report pass rate improvements without enough disclosure to reproduce or attribute the improvement.
+```
+
+Required disclosure for every benchmark/evaluation run:
+
+- task version and source paper/figure
+- harness and workflow versions
+- model, parameters, and tool versions
+- container/runtime digest
+- cost, retries, wall time, and human interventions
+- failure taxonomy
+- replay regression results
+- raw verifier outputs
+
+LLM evaluator pass must never be merged with deterministic verifier pass. Final reports should use separate labels:
+
+```text
+LLM evaluator pass
+deterministic verifier pass
+physical verifier pass
+human domain-review pass
+```
+
+### 18. Uncertainty Must Be Routed, Not Averaged Into One Confidence Score
+
+Papers: `2606.19559` Uncertainty Decomposition, scientific-agent failure papers.
+
+Current risk:
+
+```text
+The agent says it is confident, but the uncertainty is actually about missing user/domain inputs, not action execution.
+```
+
+For paper reproduction this is critical: missing material constants, boundary conditions, scan ranges, GUI-exported COMSOL templates, or figure definitions should route to clarification, not debugging.
+
+Controls:
+
+```yaml
+uncertainty:
+  action_confidence: low | medium | high
+  request_uncertainty: low | medium | high
+  missing_fields: []
+  underspecified_inputs: []
+  route_if_high_request_uncertainty: clarification_or_blocked
+```
+
+### 19. External Content And Tool Output Are Indirect Prompt-Injection Surfaces
+
+Papers: `2406.13352` AgentDojo, `2509.23694` SafeSearch, tool-use benchmark papers.
+
+Current risk:
+
+```text
+PDF text, webpages, logs, README files, code comments, search results, and tool outputs may contain instructions that the agent treats as operational guidance.
+```
+
+Controls:
+
+- mark all external content and tool output as untrusted data
+- prohibit untrusted data from overriding system/project/workflow rules
+- search results cannot become executable code or canonical skill text without sandbox review
+- critical physical parameters must cite paper text, official docs, or verified computation, not low-trust web snippets
+
+### 20. Multi-Tool Chains Create Risks Not Visible In Single Tool Calls
+
+Papers: `2502.09809` AgentGuard, ToolLLM, API-Bank, ToolEmu.
+
+Current risk:
+
+```text
+Read private file -> summarize -> write public report -> upload/push is dangerous even if each individual operation looks benign.
+```
+
+Controls:
+
+- add private-path taint tracking to artifacts
+- enforce export whitelist before any public-facing write, upload, or commit
+- define deny rules for dangerous tool sequences
+- high-risk chains require dry-run or human gate
+
+### 21. Emulated Or Simulated Safety Checks Can Be Over-Trusted
+
+Papers: `2309.15817` ToolEmu, safety benchmark papers.
+
+Current risk:
+
+```text
+An LLM-emulated sandbox or mocked tool check passes, but real COMSOL/Magnus/license/filesystem behavior differs.
+```
+
+Controls:
+
+```text
+emulated pass < dry-run pass < real sandbox pass < real execution pass
+```
+
+Reports must identify which level was achieved. Emulation can screen risk but cannot certify physical or operational success.
+
+### 22. Scientific Workflow Can Solve The Wrong Problem Correctly
+
+Papers: AI Scientist, AI-Researcher, Lang-PINN, Why LLMs Aren't Scientists Yet.
+
+Current risk:
+
+```text
+The code runs and verifiers pass for the implemented model, but the implemented model is not the paper's physical problem.
+```
+
+Required new node before implementation:
+
+```yaml
+physics_formalization:
+  outputs:
+    geometry:
+    materials:
+    equations:
+    boundary_conditions:
+    sources:
+    solver:
+    observables:
+    assumptions:
+    missing_fields:
+```
+
+Code/COMSOL generation should consume this structured spec, not raw prose alone.
+
+### 23. Dynamic Benchmarks Can Drift Just Like Skills
+
+Papers: Benchmark Self-Evolving, SEAGym/PACE family.
+
+Current risk:
+
+```text
+Automatically generated audit cases, parameter perturbations, and adversarial examples become part of replay without fixed labels, versions, or verifiers.
+```
+
+Controls:
+
+- dynamic cases start as `candidate_benchmark`
+- record generator prompt, source case, perturbation type, expected behavior, verifier, and human-confirmation status
+- only verified benchmark cases enter replay/audit sets
+
+### 24. Long-Horizon Partial Progress Can Be Misread As End-To-End Success
+
+Papers: SWE-EVO, SWE-bench, coding-agent evaluations.
+
+Current risk:
+
+```text
+A workflow improves one subgoal while regressing another, but the final report only records that some artifact was produced.
+```
+
+Controls:
+
+- track subgoal gain/loss, not only final completion
+- record `PASS->PASS`, `PASS->FAIL`, `FAIL->PASS`, and `FAIL->FAIL` transitions for replay cases
+- canonical updates must report `fix_count`, `forget_count`, `cost_delta`, and safety-rule changes
+
 ## Main Deficiencies In The Current Plan
 
 ### Deficiency 1: `update_artifacts` Writes Canonical Artifacts Too Easily
@@ -276,7 +703,7 @@ auto_write only for low-risk run-local notes
 
 ### Deficiency 2: Workflow Schema Lacks Risk And Evidence Fields
 
-Current `workflow_schema.yaml` contains only type, instruction, produces, next, branches, and retries. It does not encode risk level, stop conditions, skill loading, memory loading, verifier outputs, replay checks, or artifact-write policy.
+Current `workflow_schema.yaml` contains only type, instruction, produces, next, branches, and retries. It does not encode risk level, stop conditions, skill loading, memory loading, verifier outputs, replay checks, provenance, uncertainty routing, template assumptions, or artifact-write policy.
 
 Needed schema additions:
 
@@ -301,6 +728,20 @@ stop_conditions: []
 human_review_conditions: []
 regression_checks: []
 artifact_write_policy: proposal_only | auto_write | human_gate
+provenance:
+  required_artifacts: []
+  answer_must_cite_artifact_ids: true
+uncertainty:
+  action_confidence: low | medium | high
+  request_uncertainty: low | medium | high
+  missing_fields: []
+template_contract:
+  slots: []
+  fixed_assumptions: []
+  does_not_apply_when: []
+tool_chain_policy:
+  taint_tracking: true
+  export_whitelist_required: true
 ```
 
 ### Deficiency 3: Supervisor Judgment Is Overloaded
@@ -372,7 +813,55 @@ Daudit       final untouched set
 
 Early project version can use very small sets, but the split must exist conceptually from the start.
 
-### Deficiency 6: Mie Timeline Is Too Optimistic If It Also Serves As Benchmark Infrastructure
+### Deficiency 6: No Provenance Manifest Strong Enough For Attribution
+
+The expanded workflow/provenance and benchmark-audit papers show that pass/fail is not enough. A future reader must be able to tell whether a change helped because the workflow improved, the model changed, the loaded skill changed, the memory retrieval changed, the container changed, or the test got easier.
+
+Required run-level records:
+
+- workflow and case workflow hash
+- AGENTS/project policy hash
+- skill versions and loaded skill IDs
+- memory IDs injected into each node
+- model, inference parameters, and CLI/tool versions
+- container/runtime digest
+- artifact path, hash, producer node, and taint status
+- human intervention points
+- cost, retries, wall time, and failure taxonomy
+
+### Deficiency 7: No Skill Integrity Or Supply-Chain Gate
+
+Existing lifecycle fields are not enough if a skill package includes scripts, configs, examples, or resources. A skill may appear harmless in prose but execute broader actions through helper files.
+
+Before promotion, every skill package needs:
+
+- declared vs actual capability comparison
+- private path / shell / network / write / credential access scan
+- static check for executable snippets and hidden initialization behavior
+- dry-run or sandbox behavior test for high-risk skills
+- explicit permission and rollback policy
+
+### Deficiency 8: No Uncertainty-To-Route Mechanism
+
+The workflow still treats uncertainty mostly as supervisor judgment. It needs separate channels for action uncertainty and underspecification uncertainty.
+
+If `request_uncertainty` is high, the correct route is usually `clarification` or `blocked`, not `debug`, `retry`, or `update_artifacts`.
+
+### Deficiency 9: No Taint Tracking For Tool Chains And Export
+
+Single-tool permissions are insufficient. The dangerous path is often a chain: read private artifact, summarize it, write a public report, then export or commit it.
+
+Every artifact should carry at least:
+
+```yaml
+taint:
+  private_source: true | false
+  license_or_secret_adjacent: true | false
+  public_export_allowed: true | false
+  source_paths: []
+```
+
+### Deficiency 10: Mie Timeline Is Too Optimistic If It Also Serves As Benchmark Infrastructure
 
 The current Mie plan is useful, but if Mie is also the low-cost benchmark for workflow self-evolution, the first milestone should not be “three papers in one week”. It should be a reliable verifier suite.
 
@@ -502,6 +991,44 @@ Rules:
 - project skill candidate: needs repeated evidence
 - global/project policy: needs human confirmation or benchmark evidence
 
+### Priority 6: Add Run Provenance And Artifact Identity
+
+Do this before claiming any workflow improvement.
+
+Minimum version:
+
+- write one `run_manifest.yaml` per run
+- assign stable IDs and hashes to generated artifacts
+- record which node produced each artifact
+- require provenance-based answers to cite artifact IDs
+- return `unknown` when no log/artifact supports the claim
+
+### Priority 7: Add Skill Integrity And Supply-Chain Checks
+
+Before a skill can be promoted from candidate to active:
+
+- compare declared and actual capabilities
+- scan helper scripts/configs/examples/resources, not just `SKILL.md`
+- block undeclared shell/network/private-path/canonical-write behavior
+- require dry-run or sandbox test for privileged operations
+- record permission scope and rollback handle
+
+### Priority 8: Add Uncertainty Routing
+
+Every planning/checking node should report at least:
+
+```yaml
+action_confidence:
+request_uncertainty:
+missing_fields: []
+```
+
+High request uncertainty should route to clarification/blocking. It must not be converted into more retries or self-modification.
+
+### Priority 9: Add Taint Tracking And Tool-Chain Policies
+
+Mark artifacts derived from private PDFs, private run folders, licenses, tokens, private logs, or secret-adjacent paths. Public export, GitHub operations, or long-term canonical writes must check the taint state.
+
 ## Concrete YAML Direction
 
 Example updated node skeleton:
@@ -614,8 +1141,15 @@ This still produces useful outputs if the final workflow has no advantage:
 6. COMSOL/Magnus success is close to physical reproduction success.
 7. A small number of case studies can support claims about self-evolution effectiveness.
 8. Runtime retry budgets are enough to prevent blind debugging loops.
+9. Generated workflow topology is correct if the final report looks complete.
+10. Multi-agent review is independent just because agents run in separate conversations.
+11. A skill is safe if its markdown description looks safe.
+12. Memory retrieval is beneficial if the retrieved item is semantically similar.
+13. Benchmark pass rates mean improvement without full harness disclosure.
+14. LLM-emulated or dry-run safety checks are equivalent to real sandbox execution.
+15. A runnable physics script solves the paper's intended physical problem.
 
-The papers largely argue against all eight assumptions.
+The papers largely argue against all fifteen assumptions.
 
 ## Final Recommendation
 
@@ -623,10 +1157,11 @@ Keep the CLI-driven worker/supervisor architecture. Keep YAML workflow definitio
 
 Minimal actionable plan:
 
-1. Update workflow schema with `risk_level`, `stop_conditions`, `human_review_conditions`, `verifiers`, `loads_skills`, `success_metrics`, `regression_checks`, and `artifact_write_policy`.
+1. Update workflow schema with `risk_level`, `stop_conditions`, `human_review_conditions`, `verifiers`, `loads_skills`, `loads_memories`, `success_metrics`, `regression_checks`, `provenance`, `uncertainty`, `template_contract`, `tool_chain_policy`, and `artifact_write_policy`.
 2. Replace direct `update_artifacts` writes with candidate patch generation.
 3. Create attempt capsule and critic verdict files for every node execution.
 4. Build Mie verifier suite first, before expanding to many papers.
 5. Add active/candidate/deprecated lifecycle for lessons and skill items.
 6. Add a small replay suite before any canonical workflow or skill update.
-7. Report all outcomes with the three-state distinction: pipeline, numerical job, physical reproduction.
+7. Add run manifests, artifact hashes, provenance-cited answers, skill integrity checks, and taint tracking.
+8. Report all outcomes with the three-state distinction: pipeline, numerical job, physical reproduction.
