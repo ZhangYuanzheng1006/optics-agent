@@ -324,28 +324,16 @@ Degiron v1/v2 specific lessons:
 - V2 isolated SU-8 Wave Optics/RF mode-analysis reached the eigensolver after explicit mesh construction, then failed matrix factorization for multiple shift styles.
 - The next meaningful technical input is a verified COMSOL 6.3 GUI-exported mode-analysis template; blind changes to Java feature strings or eigenvalue shifts should stop once isolated mode analysis fails.
 
-## Search & Information Retrieval (Exa First)
+## Search & Information Retrieval
 
-当需要搜索实时信息（技术方案、代码问题、论文、文档、商业信息等）时，**优先使用 Exa MCP** 而非仅凭训练数据回答。
+Use the global MCP routing rules first, then apply these project-specific refinements:
 
-Exa 是基于语义向量的搜索引擎，相比传统关键词搜索优势：
-- **精准匹配意图**：模糊描述也能找到正确技术内容
-- **代码检索强**：GitHub 开源仓库、StackOverflow、API 文档、框架示例全覆盖
-- **防幻觉**：所有回答必须基于搜索结果，禁止凭训练数据编造 API 用法、版本号、错误信息
-- **内容干净**：自动过滤营销水文、SEO垃圾，返回结构化 Markdown，节省 Token
-
-典型场景：
-1. 查开源框架/库的最新 API 用法、迁移指南 → `exa_web_search_exa`
-2. 排查罕见报错、找解决方案 → `exa_web_search_exa`
-3. 获取网页完整内容供分析 → `exa_web_fetch_exa`
-4. 查行业动态、竞品信息 → `exa_web_search_exa`
-5. 对比技术方案、调研最佳实践 → `exa_web_search_exa`
-
-其他搜索 MCP 作为补充：
-- `arxiv-research`：学术论文专用，不用于其他场景
-- `firecrawl`：用于访问已知 URL 的网页内容，一般不用于搜索
-- `github`：可访问公开仓库和我的私有仓库，公开仓库有访问限流，一般不用于搜索
-- `sourcegraph`：跨仓库代码语义搜索
+- Physics, optics, photonics, plasmonics, Mie theory, COMSOL validation, and paper-reproduction literature: prefer `paper-search-wos` / Web of Science MCP for bibliographic metadata, citation counts, journal/source information, and screening abstracts when available.
+- AI agent, workflow, skill, LLM training, or evaluation papers used to improve the agent system: prefer `arxiv-research` MCP.
+- Non-paper searches such as COMSOL API usage, Magnus/cluster behavior, Docker issues, code examples, web documentation, and current public information: prefer `exa` MCP.
+- Use `semantic-scholar`, `openalex`, or `crossref`-based MCPs to fill missing abstracts, citation graph context, DOI metadata, or author/institution metadata after the primary source.
+- Use `firecrawl` for known URLs that need reliable extraction, and browser automation only when the page requires interaction.
+- Do not rely on training data alone for API syntax, model/library versions, paper claims, or current platform behavior.
 
 ## Development Practices
 
