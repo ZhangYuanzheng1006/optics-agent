@@ -645,23 +645,232 @@ workflow runner 在每次 run 结束后调用 `snapshot()` 创建新节点。
 
 ---
 
+## workflow 即 Magnus job
+
+workflow 不是一个本地跑的 Python 脚本，而是一个提交到 Magnus 集群的 job。
+
+```text
+project-flow 节点 → 生成临时镜像 → 构造 Magnus job → 提交到集群
+  → Magnus 为 job 注入提交者的密钥作为环境变量
+  → job 在集群内运行（COMSOL/Python/Magnus 作业）
+  → job 结束 → 产出物传回 → project-flow 处理回传 → 新节点
+```
+
+### 密钥注入
+
+Magnus 会为 job 自动注入提交者的密钥做环境变量。project-flow 和 workflow 不需要自己管理密钥传递。这意味着：
+
+```text
+临时镜像中不需要存 secret.json / license.dat / token
+  → Magnus 环境变量提供认证
+  → 临时镜像更干净，减少敏感数据泄露风险
+  → project-flow 状态节点中不需要存密钥副本
+```
+
+### job 类型映射
+
+```text
+工作 workflow run     → Magnus job (type=B2, cpu=8, mem=32G, gpu=0)
+自迭代 workflow run   → Magnus job (轻量，可能本地跑或低资源 job)
+replay suite run      → Magnus job (批量小 job)
+```
+
+COMSOL job 需要的 license mount 仍由 Magnus 环境提供：
+```text
+$HOME/.comsol-container-license:/opt/comsol-license
+APPTAINERENV_LM_LICENSE_FILE=/opt/comsol-license/license.dat
+```
+
+### job 状态与 project-flow 节点状态的映射
+
+```text
+Magnus job 状态          project-flow 节点状态
+pending / running        → 不创建节点（job 还在跑）
+success                  → 处理回传 → 创建新节点
+failed                   → 创建节点但标记 job_failed
+timeout                  → 创建节点但标记 timeout
+cancelled                → 不创建节点（人工取消，不计入状态树）
+```
+
+失败和超时也创建节点，因为失败的 attempt capsule 也有价值（失败记忆）。
+
+---
+
+## 多后端存储
+
+project-flow 状态树需要支持三个存储后端，可按配置切换或同步：
+
+```text
+├── 本地磁盘（主要工作区）
+│     路径: C:\Users\27370\Desktop\project\optics_agent\.project-flow/
+│     用途: 日常开发、快速 checkout/diff
+│
+├── Gustation（HPC 远程存储）
+│     路径: /data/public/zhangyuanzheng/project-flow/
+│     用途: 大文件、COMSOL 产出物、集群直接访问
+│     特点: 集群内高速访问，但本地访问需 SSH 同步
+│
+└── GitHub private 仓库（云端备份）
+│     路径: github.com/PKU-QNO/optics-agent-zyz 的 project-flow 分支
+│     用途: 异地备份、版本快照、协作共享
+│     特点: 用 git tree 当云盘，但不存大文件
+```
+
+### 存储分工
+
+```text
+内容                    本地    Gustation    GitHub
+状态节点元数据           ✅      ✅           ✅ (文本，适合 git)
+SKILL / YAML / AGENTS   ✅      ✅           ✅ (文本)
+向量记忆库增量           ✅      ✅           ❌ (二进制，不适合 git)
+attempt_capsules        ✅      ✅           ✅ (文本)
+产出物（代码/报告/图）    ✅      ✅           ✅ (文本+小图)
+大文件（.mph / PDF）     ❌      ✅           ❌ (只存路径引用)
+临时镜像                 ✅      ❌           ❌ (临时，不持久化)
+```
+
+### 同步策略
+
+```text
+本地 → Gustation：
+  rsync over SSH，同步状态节点目录
+  大文件只在 Gustation 存
+  触发：每次新节点创建后自动 push，或手动 project-flow sync gustation
+
+本地 → GitHub：
+  git add + commit + push 状态节点的文本部分
+  .gitignore 排除二进制（向量库/大文件/临时镜像）
+  触发：手动 project-flow sync github，或每 N 个节点自动
+
+Gustation → 本地：
+  rsync pull，用于在本地查看集群上跑的 job 产出
+  触发：手动 project-flow sync local
+```
+
+### 配置
+
+```yaml
+# .project-flow/config.yaml
+storage:
+  local:
+    path: .project-flow/
+  gustation:
+    host: zhangyuanzheng@Gustation
+    path: /data/public/zhangyuanzheng/project-flow/
+    sync_method: rsync
+    auto_push: true
+  github:
+    repo: PKU-QNO/optics-agent-zyz
+    branch: project-flow
+    auto_push: false
+    push_interval: 10  # 每 10 个节点自动 push 一次
+```
+
+---
+
+## 状态树可视化
+
+把 project-flow 的状态树渲染成类似思维导图的图形，方便查看项目演化历史。
+
+### 可视化内容
+
+```text
+每个节点显示：
+  ├── 节点 ID（S1, S2, ...）
+  ├── change_type 图标（📄论文 / 🔄自迭代 / ✏️人工）
+  ├── 摘要（论文标题 / 自迭代轮次 / 人工修改内容）
+  ├── 验证状态（✅ pass / ⚠️ pending / ❌ rejected）
+  ├── 时间
+  └── 风险警告数（如有）
+
+边显示：
+  ├── 父子关系
+  └── 分支名称（如有命名）
+```
+
+### 渲染方式
+
+```text
+project-flow visualize
+  → 读取状态树
+  → 生成 HTML（用 D3.js 或 mermaid.js 渲染树）
+  → 浏览器打开
+
+project-flow visualize --format mermaid
+  → 输出 mermaid 图代码
+  → 可粘贴到 Markdown / Notion / Obsidian
+
+project-flow visualize --path S0..S10
+  → 只显示某条路径
+```
+
+### 示例输出（mermaid）
+
+```mermaid
+graph TD
+    S0["S0 初始状态"]
+    S1["📄 S1 Mie单球 ✅"]
+    S2["📄 S2 Mie球阵 ✅"]
+    S3["📄 S3 Degiron Fig3 ⚠️surrogate"]
+    S4["🔄 S4 第1轮自迭代 ✅"]
+    S5["✏️ S5 人工确认 ✅"]
+    S6["✏️ S6 人工补COMSOL模板 ✅"]
+    S7["🔄 S7 第1轮自迭代 ❌rejected"]
+    S8["📄 S8 Degiron Fig3 ✅"]
+    
+    S0 --> S1 --> S2 --> S3
+    S3 --> S4 --> S5
+    S3 --> S6
+    S2 --> S7
+    S1 --> S8
+```
+
+### 交互功能（远期）
+
+```text
+点击节点 → 显示该节点完整元数据
+点击节点 → 显示 diff 到父节点
+点击节点 → checkout 到该节点
+点击分支 → 高亮整条分支
+拖拽 → 对比两个节点
+```
+
+远期可以做成交互式 web UI，初期静态 HTML/mermaid 够用。
+
+---
+
 ## 实现顺序
 
 ```text
 第一步：最小 project-flow
   ├── project_flow.py 基础操作（snapshot / checkout / log / diff）
-  ├── 增量存储
+  ├── 增量存储（本地）
   └── 被 workflow runner 调用
 
-第二步：对比和回滚
+第二步：Magnus job 集成
+  ├── workflow → Magnus job 提交
+  ├── job 状态轮询 → 回传处理
+  └── 密钥由 Magnus 注入，不在镜像中存
+
+第三步：对比和回滚
   ├── branch / rollback / compare
   └── 用于"自迭代改坏了→回滚→重跑"
 
-第三步：实验管理
+第四步：多后端同步
+  ├── Gustation rsync 同步
+  ├── GitHub private repo 同步（文本部分）
+  └── 大文件只在 Gustation 存
+
+第五步：实验管理
   ├── replay_from / export
   └── 用于论文顺序对比实验
 
-第四步：清理和归档
+第六步：可视化
+  ├── mermaid 输出
+  ├── 静态 HTML 渲染
+  └── 浏览器打开
+
+第七步：清理和归档
   ├── gc / archive
   └── 长期状态节点管理
 ```
