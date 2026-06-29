@@ -15,12 +15,7 @@ When the task involves COMSOL or Magnus execution, also load the relevant runtim
 - `optics-comsol-batch` for Java/M-file/.mph batch patterns and runner contracts.
 - `optics-magnus-platform` for job dedupe, resource checks, logs, and file flow.
 
-For complex multi-step reproductions, use the declarative workflow system:
-
-- Load `workflows/paper_reproduction.workflow.yaml` for the full topology.
-- Start from the first node and follow `next`/`branches` transitions.
-- Update `workflows/state/<session>.yaml` after each node.
-- The `update_artifacts` node handles SKILL/workflow self-iteration.
+For complex multi-step reproductions, the project uses a **fixed-topology** workflow system (v2). The reproduction topology is human-written YAML and is never self-modified. Self-iteration (skill-content and prompt-note updates only) is a separate offline workflow gated by human review, and it never edits the reproduction topology, blueprints, or `AGENTS.md`. Canonical design: `notes/workflow_v2_plan-CN.md`. The current `workflows/*.workflow.yaml` is a v1 instance pending rewrite, so do not treat its `update_artifacts`/self-evolving-topology nodes as authoritative.
 
 For Mie theory analytical/semi-analytical reproductions (2026-06):
 

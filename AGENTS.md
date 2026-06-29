@@ -25,7 +25,7 @@ Paper reproduction is a regression test for blueprint iteration, not the final o
 
 - **Mie theory analytical reproduction** (new, 2026-06): Assigned by optics group to build analytical/semi-analytical scattering models for sphere arrays. All Python, no COMSOL needed. See `reproduction_test/mie_internal_plan.md` and `mie_theory_plan.md`.
 - **Agent skill & workflow self-iteration survey** completed. See `notes/agent_skill_self_iteration/`.
-- **Workflow engine design** in progress. See `notes/workflow_engine_design.md`.
+- **Workflow engine design** (v2) in progress. Canonical: `notes/workflow_v2_plan-CN.md` (+ `notes/project_flow_plan-CN.md`, `notes/workflow_v2_risks-CN.md`). The v1 self-evolving-DSL design is archived under `project/to-do-future/DSL/` and is no longer the active plan.
 - COMSOL/Magnus runtime exists and is usable through the active Magnus image:
 
 ```text
@@ -92,51 +92,39 @@ Keep root clutter low. New COMSOL work should go under `comsol/`; paper-specific
 
 ## Workflow System
 
-optics_agent 使用 YAML 定义的声明式工作流来编排论文复现等复杂任务。工作流文件 (`*.workflow.yaml`) 定义了执行拓扑、节点指令和分支条件。
+optics_agent 用 YAML 定义的**固定拓扑**工作流编排论文复现。当前为 v2（简化版）；v1 的"可自迭代拓扑"声明式 DSL 已废弃（自由度过高导致风险爆炸，见 commit `bc3b5b6` 的风险报告）。
 
-### 核心概念
-- **节点 (Node)**：工作流的基本执行单元，每个节点是一个原子任务
-- **分支 (Branch)**：根据条件评估结果动态路由到不同路径
-- **状态文件 (State)**：记录当前 session 的执行进度和中间产物
-- **自迭代**：工作流定义本身可以被 `update_artifacts` 节点修改，实现拓扑级自进化
+权威设计文档（细节在 `notes/`，本文件只保留不可违反的原则）：
 
-### 节点类型
-| 类型 | 行为 | 示例 |
-|------|------|------|
-| `prompt` | 执行 instruction，进入 `next` | 论文阅读、报告生成 |
-| `branch` | 评估 condition，按 `branches` 映射路由 | 理论检查、数值检查 |
-| `tool` | 调用预定义工具 | 提交 Magnus 作业 |
-| `parallel` | 并行执行多个子节点 | 同时检查多个结果 |
-
-### 使用方式
-1. 识别任务类型，选择对应的工作流文件 (如 `paper_reproduction.workflow.yaml`)
-2. 载入工作流定义到 context
-3. 从第一个节点开始按顺序/分支执行
-4. 每节点完成后更新 state 文件
-5. 在 `update_artifacts` 节点更新工作流定义本身
-
-### 文件位置
 ```text
-workflows/
-├── ENGINE.md                          # 工作流引擎指南
-├── schemas/
-│   ├── workflow_schema.yaml           # 工作流定义格式标准
-│   └── params_schema.yaml             # 参数文件格式标准
-├── prompts/                           # 各节点的详细 prompt 文件
-│   ├── paper_reading.md
-│   ├── theory_derivation.md
-│   ├── numerical_program.md
-│   └── update_artifacts.md
-├── state/                             # 执行状态文件（自动生成）
-└── paper_reproduction.workflow.yaml   # 论文复现标准工作流
+notes/workflow_v2_plan-CN.md      工作 workflow + 自迭代 workflow（当前主线）
+notes/workflow_v2_risks-CN.md     v2 风险清单
+notes/project_flow_plan-CN.md     项目状态树版本控制（project-flow）
+project/to-do-future/DSL/         v1 可变拓扑 DSL（已归档，远期）
 ```
 
-### 自迭代契约
-- `update_artifacts` 节点可修改 `.workflow.yaml` 本身
-- 修改后递增 `version`，追加 `history` 条目
-- 蓝图更新 → `.magnus/.blueprints/`
-- SKILL 更新 → `.codex/skills/<name>/SKILL.md`
-- 工作流更新 → `workflows/`
+### 不可违反的架构原则
+
+1. **拓扑写死，人工管**。workflow 拓扑由人工编写的固定 YAML 定义。agent 不得自动改拓扑、节点指令或分支条件。学长意见：小成本项目（不是扫几十万篇文献）不需要也不能有可变拓扑的自由度。
+2. **只有智能断点用 agent**。能用确定性脚本做的（物理通用检查、导出、schema 校验）必须写死成脚本，不用 agent。每个 agent 节点要能回答"为什么脚本不能做"。
+3. **无 supervisor/worker 双对话**。不采用"主管 agent + 工作 agent 两条独立长对话互相中继"的架构。改为：固定脊柱 + 节点内 agent 自由调子 agent。多目标复现（如 Fig2+Fig3 无关）= 在同一固定拓扑的节点内并发多个子 agent，拓扑不变。
+4. **自迭代只碰经验层**。自迭代只更新 skill 内容 + 提示词备注，全部走 human gate；绝不改 workflow 拓扑、蓝图结构、`AGENTS.md`、或自迭代系统自身。
+5. **自迭代不迭代自己**。自迭代 workflow 的拓扑、节点指令、专用 SKILL 人工写死，禁止自我修改。
+6. **核心卖点 = 垂域可验证效果**。光学复现 + deterministic verifier + 可审计执行是目标，agent 只是手段；不是 agent 框架，不是 DSL 自演化平台。
+
+### 三种状态改变（project-flow）
+
+系统状态只由三种操作改变，每种走临时镜像 → 回传白名单守门 → 新状态节点：
+
+```text
+paper_reproduction   跑一篇论文复现
+self_iteration       自迭代一轮 skill/备注
+human_intervention   人工改 SKILL/规则/参数/记忆
+```
+
+### 实现状态
+
+设计已完成，代码尚未实现（2026-06）。**先跑通再加治理**：从物理通用检查脚本（如 `energy_conservation.py`）+ 最小 workflow runner + 一个真实 Mie case 开始，不在验证 DSL 价值前过度投资治理基础设施。`workflows/` 下现存文件（`paper_reproduction.workflow.yaml`、`ENGINE.md`、`prompts/`）仍是 v1 残留，待重写为 v2 固定拓扑。
 
 ## Skill System
 
