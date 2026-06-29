@@ -3,7 +3,7 @@
 > 这份是给执行 agent（claude）看的任务列表。按顺序做，每个任务有明确的"完成条件"。
 > 流程知识在 `.codex/skills/optics-mie-reproduction/SKILL.md`，论文清单在 `references/papers.md`，检验规则在 `references/verification.md`，benchmark 格式在 `references/benchmark_format.md`。
 > 人看的总计划在 `reproduction_test/mie/mie_reproduction_plan-CN.md`。
-> **关键：不要自己宣布成功。每个阶段跑完 4 层检验 + 等人工 gate 通过才算完成。**
+> **关键：不要自己宣布成功。每个阶段跑完 3 层检验 + 等人工 gate 通过才算完成。**
 
 ## 全局规则（每个任务都遵守）
 
@@ -17,9 +17,7 @@
 ## 阶段 0：环境与脚手架（最先做）
 
 - [ ] **T0.1 确认教材**：问用户手头有没有 Bohren & Huffman 或 Kerker 的 PDF。没有就帮用户找。核心公式要对着教材核，不能只靠 review 论文。
-- [ ] **T0.2 装 PyMieScatt**：`pip install PyMieScatt`。这是第三方裁判，没它没法做 Layer 3 交叉验证。
-- [ ] **T0.3 装 scattnlay**（可选，核壳阶段用）：`pip install scattnlay`。
-- [ ] **T0.4 建 benchmark.yaml 骨架**：按 `references/benchmark_format.md` 建 `reproduction_test/mie/data/benchmark.yaml`，先放 stage 1 的 placeholder 条目，值标 `pending`。
+- [ ] **T0.2 建 benchmark.yaml 骨架**：按 `references/benchmark_format.md` 建 `reproduction_test/mie/data/benchmark.yaml`，先放 stage 1 的 placeholder 条目，值标 `pending`。
 
 ## 阶段 1：单球 Mie 基础（主论文 Akimov 2401.04146）
 
@@ -40,17 +38,15 @@
 - [ ] **T1.7 写 `tests/test_rayleigh_limit.py`**：硬编码小 $x$ 下 $Q_{sca}\propto x^4$，斜率 $4\pm0.01$。
 - [ ] **T1.8 跑 3 个物理 verifier**：用 skill 的 `scripts/check_energy_conservation.py`、`check_rayleigh_limit.py`、`check_large_size_limit.py`。
   - 完成条件：3 个都 PASS。任何一个 FAIL 停下来查 bug，不继续。
-- [ ] **T1.9 跑 PyMieScatt 交叉验证**：用 `scripts/compare_pymiessatt.py`（先把脚本里的单位对齐 TODO 补完）。
-  - 完成条件：截面相对误差 $<10^{-6}$，Mie 系数绝对误差 $<10^{-8}$。
-- [ ] **T1.10 画 $Q_{sca}(x)$ 曲线**：$x\in[0.1,30]$，$n=1.5,2,3,4$，存 `figs/akimov_Qsca_vs_x.png`。多极分解图（前 3 阶电/磁贡献）放第二阶段初，本阶段先不做。
-- [ ] **T1.11 论文图量化对比**：数字化 Akimov 的 $Q_{sca}(x)$ 图，算 RMSE 和峰位误差。
+- [ ] **T1.9 画 $Q_{sca}(x)$ 曲线**：$x\in[0.1,30]$，$n=1.5,2,3,4$，存 `figs/akimov_Qsca_vs_x.png`。多极分解图（前 3 阶电/磁贡献）放第二阶段初，本阶段先不做。
+- [ ] **T1.10 论文图量化对比**：数字化 Akimov 的 $Q_{sca}(x)$ 图，算 RMSE 和峰位误差。
   - 完成条件：误差数字写进 benchmark.yaml，不靠"看着像"。
   - **人工 gate ④**：用户看量化误差数字，决定 pass/fail。
-- [ ] **T1.12 更新 benchmark.yaml**：把 `akimov_single_sphere` 条目的 `provenance`、`three_way_agreement`、`verifier_results`、`human_gate_4` 填上实际值。
-- [ ] **T1.13 写阶段 1 skill 内容**：把本阶段学到的流程写进 `.codex/skills/optics-mie-reproduction`（如 verifier 用法、坑点），标 `status: candidate`，明确 `applies_when: 单球 Mie`，`does_not_apply_when: 核壳/阵列`。
-- [ ] **T1.14 写阶段 1 汇报材料**：推导笔记 + 曲线 + 数据表 + 物理结论（如 Rayleigh/Mie/几何光学三区过渡），准备给老师汇报。
+- [ ] **T1.11 更新 benchmark.yaml**：把 `akimov_single_sphere` 条目的 `provenance`、`two_way_agreement`、`verifier_results`、`human_gate_4` 填上实际值。
+- [ ] **T1.12 写阶段 1 skill 内容**：把本阶段学到的流程写进 `.codex/skills/optics-mie-reproduction`（如 verifier 用法、坑点），标 `status: candidate`，明确 `applies_when: 单球 Mie`，`does_not_apply_when: 核壳/阵列`。
+- [ ] **T1.13 写阶段 1 汇报材料**：推导笔记 + 曲线 + 数据表 + 物理结论（如 Rayleigh/Mie/几何光学三区过渡），准备给老师汇报。
 
-**阶段 1 完成定义**：T1.1-T1.14 全部 done，4 层检验全过，4 个人工 gate 全过，benchmark.yaml 条目 `three_way_agreement: pass`。
+**阶段 1 完成定义**：T1.1-T1.13 全部 done，3 层检验全过，4 个人工 gate 全过，benchmark.yaml 条目 `two_way_agreement: pass`。
 
 ## 阶段 2：金属球 LSPR（主论文 Colas des Francs 1112.2814）
 
@@ -59,7 +55,7 @@
 - [ ] **T2.3** 推导 Drude 介电函数 + 准静态 LSPR 条件。人工 gate ③（核对 $\mathrm{Re}(\varepsilon)=-2\varepsilon_d$）。
 - [ ] **T2.4** 实现 `code/drude.py`（Au/Ag Drude）。
 - [ ] **T2.5** 实现 `code/lspr.py`（金属球消光谱 + Purcell 因子）。
-- [ ] **T2.6** 检验：准静态 LSPR 峰位 vs 完整 Mie 峰位对比；PyMieScatt 交叉验证。
+- [ ] **T2.6** 检验：准静态 LSPR 峰位 vs 完整 Mie 峰位对比。
 - [ ] **T2.7** 画 LSPR 波长 vs 半径、Purcell 因子谱。
 - [ ] **T2.8** 论文图量化对比 + benchmark 追加。人工 gate ④。
 
@@ -70,7 +66,7 @@
 
 ## 阶段 4：核壳结构 Mie（主论文 Tam，PDF 在 papers/mie/）
 
-- [ ] **T4.1-T4.8** 同套路。关键检验：壳厚→∞ 退化为单球（核材料），核→0 退化为单球（壳材料）。用 scattnlay 交叉验证。
+- [ ] **T4.1-T4.8** 同套路。关键检验：壳厚→∞ 退化为单球（核材料），核→0 退化为单球（壳材料）。
 - [ ] **阶段 4 过后**：skill 从 `candidate` 升 `active`（已有单球 + 核壳两类证据）。
 
 ## 阶段 5：周期阵列 SLR（主论文 Auguie & Barnes，PDF 在 papers/mie/）
@@ -107,4 +103,4 @@
 - 不要跳过人工 gate 直接进下一阶段
 - 不要把单阶段经验写进长期 skill 不带适用边界
 - 不要用"看着像"判定论文图对比
-- 不要在 PyMieScatt 对不上时继续往下跑
+- 不要在物理硬约束不满足时继续往下跑

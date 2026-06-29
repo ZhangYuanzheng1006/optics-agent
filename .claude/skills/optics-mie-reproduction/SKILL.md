@@ -1,6 +1,6 @@
 ---
 name: optics-mie-reproduction
-description: Mie theory analytical/semi-analytical scattering calculations for optics_agent — single sphere, metal LSPR, dielectric modes, core-shell, periodic arrays, binary arrays, effective medium. Use when the task involves Mie scattering, Lorenz-Mie coefficients, scattering/absorption/extinction cross sections, Drude dispersion LSPR, dielectric nanosphere magnetic dipole modes, core-shell recursive Mie, coupled dipole approximation (CDA), surface lattice resonances (SLR), Rayleigh anomaly, binary nanoparticle arrays, S-parameter retrieval effective medium, Maxwell-Garnett, Mie-vs-Bragg phase diagram, or building Python-only scattering benchmark data for later COMSOL validation. Also use when writing Mie physical verifiers (energy conservation, Rayleigh limit, large-size extinction paradox, optical theorem) or comparing against PyMieScatt/scattnlay reference implementations.
+description: Mie theory analytical/semi-analytical scattering calculations for optics_agent — single sphere, metal LSPR, dielectric modes, core-shell, periodic arrays, binary arrays, effective medium. Use when the task involves Mie scattering, Lorenz-Mie coefficients, scattering/absorption/extinction cross sections, Drude dispersion LSPR, dielectric nanosphere magnetic dipole modes, core-shell recursive Mie, coupled dipole approximation (CDA), surface lattice resonances (SLR), Rayleigh anomaly, binary nanoparticle arrays, S-parameter retrieval effective medium, Maxwell-Garnett, Mie-vs-Bragg phase diagram, or building Python-only scattering benchmark data for later COMSOL validation. Also use when writing Mie physical verifiers (energy conservation, Rayleigh limit, large-size extinction paradox, optical theorem) or building Python-only scattering benchmark data for later COMSOL validation.
 ---
 
 # Optics Mie Reproduction
@@ -13,12 +13,11 @@ Authoritative human-facing plan: `reproduction_test/mie/mie_reproduction_plan-CN
 
 ## Core Principle: How A Human Knows The AI Got It Right
 
-Never judge success by eye against paper figures. Use 4 verification layers, easiest-first. Full detail in `references/verification.md`.
+Never judge success by eye against paper figures. Use 3 verification layers, easiest-first. Full detail in `references/verification.md`.
 
 1. **Physical hard constraints** (parameter-independent, AI cannot fake): energy conservation $C_{ext}=C_{sca}+C_{abs}$, zero absorption when $\mathrm{Im}(\varepsilon)=0$, optical theorem $C_{ext}=\frac{4\pi}{k}\mathrm{Im}\,S(0)$, Rayleigh $Q_{sca}\propto x^4$, large-size $Q_{ext}\to2$, spherical symmetry.
 2. **Known limits / degeneracies**: quasi-static LSPR $\mathrm{Re}(\varepsilon)=-2\varepsilon_d$, core-shell shell-thickness→∞ collapses to single sphere, array period→∞ collapses to single sphere, low-filling→Maxwell-Garnett.
-3. **Third-party implementation cross-check** (the key referee): run the same parameters through PyMieScatt (or scattnlay); accept only when differences are within tolerance. Mie has no official benchmark table — PyMieScatt IS the de facto standard answer.
-4. **Quantitative paper-figure comparison**: RMSE, resonance peak error (nm), Q-factor relative error. "Looks similar" does not count.
+3. **Quantitative paper-figure comparison**: RMSE, resonance peak error (nm), Q-factor relative error. "Looks similar" does not count.
 
 ## What To Trust Vs Not Trust About AI-Generated Work
 
@@ -40,8 +39,8 @@ Never judge success by eye against paper figures. Use 4 verification layers, eas
 3. **Physics formalization** → structured spec: geometry, materials, equations, boundary conditions, sources, solver, observables, assumptions, missing fields (human gate ②).
 4. **Derive core formulas** — full derivation in `notes/<case>.md`; the Mie coefficient expressions $a_n,b_n$ are checked against a textbook, not the review paper (human gate ③).
 5. **Implement** — `code/<case>.py` using `scipy.special` for spherical Bessel/Legendre. Write `tests/test_<case>.py` at the same time (TDD: physical constraints are hardcoded, code must satisfy tests).
-6. **Run 4-layer verification** — physical hard constraints → known limits → PyMieScatt cross-check → quantitative paper comparison.
-7. **Append to benchmark** — `data/benchmark.yaml` entry with parameters, expected values, tolerance, three-way agreement status.
+6. **Run 3-layer verification** — physical hard constraints → known limits → quantitative paper comparison.
+7. **Append to benchmark** — `data/benchmark.yaml` entry with parameters, expected values, tolerance, two-way agreement status.
 8. **Human gate ④** — review quantitative comparison numbers; do not accept "looks similar".
 
 ## Required Artifacts Per Stage
@@ -70,7 +69,7 @@ This skill starts as `status: candidate` covering only single-sphere Mie. Promot
 ## References (load when needed)
 
 - `references/papers.md` — the 11-paper list with abstracts, reproduction points, verification criteria, and execution order.
-- `references/verification.md` — 4-layer verification detail, verifier script usage, tolerance defaults.
+- `references/verification.md` — 3-layer verification detail, verifier script usage, tolerance defaults.
 - `references/benchmark_format.md` — `benchmark.yaml` schema and example entries.
 
 ## Scripts
@@ -78,7 +77,6 @@ This skill starts as `status: candidate` covering only single-sphere Mie. Promot
 - `scripts/check_energy_conservation.py` — verify $C_{ext}=C_{sca}+C_{abs}$ within 1e-10.
 - `scripts/check_rayleigh_limit.py` — verify $Q_{sca}\propto x^4$ slope in log-log at small $x$.
 - `scripts/check_large_size_limit.py` — verify $Q_{ext}\to2$ at large $x$.
-- `scripts/compare_pymiessatt.py` — run same parameters through our impl and PyMieScatt, output diff table.
 
 Scripts import from `reproduction_test/mie/code/`; they fail with a clear message if the implementation is not yet present.
 

@@ -33,14 +33,12 @@ cases:
       rmse_peak_fraction: 0.05
     provenance:
       our_impl:                # values from our code
-      pymiessatt:              # values from PyMieScatt
       paper_figure:            # values digitized from paper
-    three_way_agreement: <pass|partial|fail|pending>
+    two_way_agreement: <pass|partial|fail|pending>
     verifier_results:
       energy_conservation: <pass|fail>
       rayleigh_limit: <pass|fail>
       large_size_limit: <pass|fail|na>
-      pymiessatt_crosscheck: <pass|fail|na>
     human_gate_4: <pass|fail|pending>   # human reviewed quantitative comparison
     notes: <string>            # caveats, simplifications, missing info
 ```
@@ -74,21 +72,19 @@ cases:
       rmse_peak_fraction: 0.05
     provenance:
       our_impl: pending
-      pymiessatt: pending
       paper_figure: pending
-    three_way_agreement: pending
+    two_way_agreement: pending
     verifier_results:
       energy_conservation: pending
       rayleigh_limit: pending
       large_size_limit: pending
-      pymiessatt_crosscheck: pending
     human_gate_4: pending
-    notes: "Stage 1 baseline; values to be filled after implementation + PyMieScatt cross-check."
+    notes: "Stage 1 baseline; values to be filled after implementation."
 ```
 
 ## Rules
 
 - Append-only within a case; never overwrite a frozen value. If a value is corrected, add a new case_id suffix `_v2` and mark the old one `superseded_by`.
-- `three_way_agreement` becomes `pass` only when our impl, PyMieScatt, and the paper figure all agree within tolerance. `partial` means two of three agree — investigate, do not proceed.
+- `two_way_agreement` becomes `pass` only when our impl and the paper figure agree within tolerance. `partial` means they disagree — investigate, do not proceed.
 - `human_gate_4` is set by the human after reviewing quantitative numbers, never by the AI.
 - Tolerances are set by the human, not auto-derived from the implementation.

@@ -10,12 +10,11 @@
 
 ## 核心原则：人怎么知道 AI 复现得对不对
 
-不靠肉眼跟论文图比，靠 4 层检验。**先过不依赖论文的物理硬约束，最后才跟论文图比**。详细规则见 `.codex/skills/optics-mie-reproduction/references/verification.md`，这里说要点：
+不靠肉眼跟论文图比，靠 3 层检验。**先过不依赖论文的物理硬约束，最后才跟论文图比**。详细规则见 `.codex/skills/optics-mie-reproduction/references/verification.md`，这里说要点：
 
 1. **物理硬约束**（AI 没法糊弄，人也能判断）：能量守恒 $C_{ext}=C_{sca}+C_{abs}$、无吸收时 $C_{abs}=0$、光学定理、瑞利极限 $Q_{sca}\propto x^4$、大尺寸极限 $Q_{ext}\to 2$、球对称性。
 2. **极限/退化情形**：金属球 LSPR 准静态 $\mathrm{Re}(\varepsilon)=-2\varepsilon_d$、核壳壳厚→∞ 退化为单球、阵列周期→∞ 退化为单球、低填充率→Maxwell-Garnett。
-3. **第三方实现交叉验证**：用 PyMieScatt（开源、同行验证过）当裁判，同样参数两边跑，差值在容差内才过。**这是关键**——Mie 没有官方 benchmark 数值表，PyMieScatt 就是事实标准答案。
-4. **论文图量化对比**：算 RMSE、共振峰位误差（nm）、Q 值相对误差，不靠"看着像"。
+3. **论文图量化对比**：算 RMSE、共振峰位误差（nm）、Q 值相对误差，不靠"看着像"。
 
 ## 哪些过程可以信任 AI，哪些不行
 
@@ -45,9 +44,8 @@
 
 1. 跑 3 个物理 verifier 脚本（自动，5 分钟）：能量守恒、瑞利极限、大尺寸极限，全过才继续
 2. 核对核心公式那 2-3 行（人工，10 分钟）：对着教材查 $a_1,b_1$，**最关键的 10 分钟**
-3. 跑 PyMieScatt 交叉验证（自动，5 分钟）：看差值表，容差内才过
-4. 量化论文图对比（自动+人工，5 分钟）：看 RMSE 和峰位误差数字
-5. 物理直觉检查（人工，5 分钟）：峰在该出现的位置吗？形状对吗？
+3. 量化论文图对比（自动+人工，5 分钟）：看 RMSE 和峰位误差数字
+4. 物理直觉检查（人工，5 分钟）：峰在该出现的位置吗？形状对吗？
 
 ---
 
@@ -142,7 +140,7 @@ reproduction_test/mie/
 │   ├── test_energy_conservation.py
 │   ├── test_rayleigh_limit.py
 │   ├── test_large_size_limit.py
-│   └── compare_pymiessatt.py
+│   └── ...
 ├── formalization/  # 每篇论文的物理 spec（人工 gate ②）
 │   ├── akimov_single_sphere.yaml
 │   └── ...
@@ -154,7 +152,7 @@ reproduction_test/mie/
 
 ## benchmark.yaml 从阶段 1 就建
 
-每阶段跑完追加条目。字段：case_id、论文、参数、预期数值（共振位置/Q值/截面）、容差、来源（我们的实现 vs PyMieScatt vs 论文图）、三方一致性状态。详细格式见 `.codex/skills/optics-mie-reproduction/references/benchmark_format.md`。
+每阶段跑完追加条目。字段：case_id、论文、参数、预期数值（共振位置/Q值/截面）、容差、来源（我们的实现 vs 论文图）、两方一致性状态。详细格式见 `.codex/skills/optics-mie-reproduction/references/benchmark_format.md`。
 
 ## skill 生命周期（避免 Degiron 教训）
 

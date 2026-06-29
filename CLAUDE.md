@@ -21,9 +21,18 @@ paper reproduction
 
 Paper reproduction is a regression test for blueprint iteration, not the final objective. Optics is the current use case; the workflow should generalize to unfamiliar scientific and engineering domains.
 
+## SEPR Sister Workspace
+
+- **SEPR** (self-evo-paper-repro, `C:\Users\27370\Desktop\project\self-evo-paper-repro`) is optics_agent's sister workspace for paper reproduction + skill/blueprint self-evolution experiments.
+- Isolates self-evolution context from optics_agent's coding-and-production context.
+- Uses Claude Code 3-layer sub-agents (main-agent → sub-agent → sub-sub-agent) instead of workflow state machines.
+- `.human/` = Chinese human-review drafts; `.claude/` = English prompt-engineered execution versions.
+- 4-agent architecture: Reproduction (main-agent + sub-agent, 10 steps) + Self-evolution (evolution-agent + sub-E-agent, 5 steps).
+- Mie Phase 1 infrastructure runs in SEPR; code shares `reproduction_test/mie/` via junction.
+
 ## Current Project Status
 
-- **Mie theory analytical reproduction** (new, 2026-06): Assigned by optics group to build analytical/semi-analytical scattering models for sphere arrays. All Python, no COMSOL needed. See `reproduction_test/mie_internal_plan.md` and `mie_theory_plan.md`.
+- **Mie theory analytical reproduction** (new, 2026-06): Infrastructure built in SEPR workspace. Verification: 4-layer → 3-layer — PyMieScatt deprecated, physical hard constraints + Rayleigh/large-size limit degradation + paper figure quantitative comparison retained, two-party consistency. 11 reference papers in `papers/mie/` (mirrored in `.paper/mie/`). Textbook PDFs (Bohren & Huffman / Kerker) pending — core formulas from primary textbooks. Complete plan in `reproduction_test/mie/mie_reproduction_plan-CN.md` + skill `optics-mie-reproduction` + todolist. **Blocker**: awaiting user textbook confirmation before Phase 1.
 - **Agent skill & workflow self-iteration survey** completed. See `notes/agent_skill_self_iteration/`.
 - **Workflow engine design** (v2) in progress. Canonical: `notes/workflow_v2_plan-CN.md` (+ `notes/project_flow_plan-CN.md`, `notes/workflow_v2_risks-CN.md`). The v1 self-evolving-DSL design is archived under `project/to-do-future/DSL/` and is no longer the active plan.
 - COMSOL/Magnus runtime exists and is usable through the active Magnus image:
@@ -97,7 +106,7 @@ optics_agent 用 YAML 定义的**固定拓扑**工作流编排论文复现。当
 权威设计文档（细节在 `notes/`，本文件只保留不可违反的原则）：
 
 ```text
-notes/workflow_v2_plan-CN.md      工作 workflow + 自迭代 workflow（当前主线）
+notes/workflow_v2_plan-CN.md      工作 workflow + 自迭代 workflow（已归档；SEPR 用子 agent 替代 workflow 状态机）
 notes/workflow_v2_risks-CN.md     v2 风险清单
 notes/project_flow_plan-CN.md     项目状态树版本控制（project-flow）
 project/to-do-future/DSL/         v1 可变拓扑 DSL（已归档，远期）
@@ -124,7 +133,7 @@ human_intervention   人工改 SKILL/规则/参数/记忆
 
 ### 实现状态
 
-设计已完成，代码尚未实现（2026-06）。**先跑通再加治理**：从物理通用检查脚本（如 `energy_conservation.py`）+ 最小 workflow runner + 一个真实 Mie case 开始，不在验证 DSL 价值前过度投资治理基础设施。`workflows/` 下现存文件（`paper_reproduction.workflow.yaml`、`ENGINE.md`、`prompts/`）仍是 v1 残留，待重写为 v2 固定拓扑。
+v2 设计已完成但代码未实现（2026-06）。SEPR 工作区用 claude 三层子 agent 替代 workflow 状态机，已实际运行 Mie 复现基础设施。`workflows/` 下现存文件（`paper_reproduction.workflow.yaml`、`ENGINE.md`、`prompts/`）是 v1 残留，暂不重写——SEPR 子 agent 方案是当前有效路径。
 
 ## Skill System
 
@@ -148,7 +157,7 @@ Current routing:
 | Task | Skill |
 |---|---|
 | Project routing, goals, credentials, important files | `optics-agent-core` |
-| Mie theory analytical/semi-analytical calculations, Lorenz-Mie coefficients, scattering/absorption/extinction cross sections, metal LSPR, dielectric Mie modes, core-shell recursive Mie, coupled dipole approximation, surface lattice resonances, binary arrays, S-parameter retrieval effective medium, Maxwell-Garnett, Mie-vs-Bragg phase diagram, Python-only scattering benchmark data, Mie physical verifiers, PyMieScatt cross-check | `optics-mie-reproduction` + `reproduction_test/mie/mie_reproduction_plan-CN.md` |
+| Mie theory analytical/semi-analytical calculations, Lorenz-Mie coefficients, scattering/absorption/extinction cross sections, metal LSPR, dielectric Mie modes, core-shell recursive Mie, coupled dipole approximation, surface lattice resonances, binary arrays, S-parameter retrieval effective medium, Maxwell-Garnett, Mie-vs-Bragg phase diagram, Python-only scattering benchmark data, Mie physical verifiers, 3-layer physical verification (energy conservation, Rayleigh/large-size limits, paper figure comparison; PyMieScatt deprecated) | `optics-mie-reproduction` + `reproduction_test/mie/mie_reproduction_plan-CN.md` |
 | Paper figure reproduction, parameter tables, missing-info analysis, handoff reports, workflow-based reproduction, COMSOL/Magnus reproduction (non-Mie) | `optics-paper-reproduction` + `workflows/paper_reproduction.workflow.yaml` |
 | COMSOL runtime image, active Magnus-local image, license mounts, runtime folder | `optics-comsol-runtime` |
 | COMSOL batch/headless jobs, `.java`/`.mph`/`.m`, smoke cases, manifest contract | `optics-comsol-batch` |
@@ -156,6 +165,10 @@ Current routing:
 | Magnus/Gustation jobs, logs, blueprint save/launch, staging paths | `optics-magnus-platform` |
 | Magnus artifact formats, `.magnus.yaml`, `.magnus.skill.yaml`, import/export packaging | `optics-magnus-artifacts` |
 | Docker image build/push/archive/handoff, ACR/PKU registry, image size/hash | `optics-docker-images` |
+| Reproduction 复现编排 (SEPR workspace) | `main-agent` (SEPR `.human/skills/`) |
+| Reproduction 复现执行 (SEPR workspace) | `sub-agent` (SEPR `.human/skills/`) |
+| Self-evolution 自迭代编排 (SEPR workspace) | `evolution-agent` (SEPR `.human/skills/`) |
+| Self-evolution 自迭代执行 (SEPR workspace) | `sub-E-agent` (SEPR `.human/skills/`) |
 
 If COMSOL and Magnus are both involved, load `optics-comsol-runtime` first, then `optics-magnus-platform`. If paper reproduction is involved, also load `optics-paper-reproduction`.
 
