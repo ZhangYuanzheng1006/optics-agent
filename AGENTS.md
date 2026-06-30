@@ -47,6 +47,8 @@ paper reproduction
 
 **给 optics_agent 的 CC 的提醒**：你要改进 SEPR 设计时，读 `C:\Users\27370\Desktop\project\self-evo-paper-repro\WORK_LOG.md` 恢复 SEPR 上下文，不要照搬 SEPR 的复现机制到 optics_agent（optics_agent 是 Magnus+COMSOL 工作区，不是复现 agent）。
 
+**SEPR 双系统 + 三文件同步**：SEPR 同时支持 Claude Code（Opus，读 `.claude/skills/` 预加载）和 OpenCode（GPT-5.5 备选，读 `.opencode/prompts/` + skill tool 懒加载同一份 SKILL.md）。SEPR 有三个根配置文件必须同步改：`CLAUDE.md`（规则主源）/ `AGENTS.md`（OpenCode 本地隔离入口）/ `opencode.json`（OpenCode permission/agent 配置）。改任何一个必须同步审改其它两个，否则 Claude Code 和 OpenCode 行为分叉。详细规则见 SEPR `CLAUDE.md` 的"三文件同步规则"节。OA 的 CC 改 SEPR 时务必遵守。
+
 ## Current Project Status
 
 - **Mie theory analytical reproduction**（2026-06）：执行基础设施已转入 SEPR 工作区；Mie blocker 已解除。验证体系从 4 层收敛为 3 层：物理硬约束 + Rayleigh/large-size 等已知极限 + 论文图定量比较；PyMieScatt 作为强依赖已废弃。11 篇参考论文在 `papers/mie/`（SEPR 侧镜像到 `.paper/mie/`）。教材 Bohren & Huffman `.paper/scattering.pdf`（27.8MB）已就位。完整计划见 `reproduction_test/mie/mie_reproduction_plan-FINAL-CN.md` + skill `optics-mie-reproduction`。下一步是在 SEPR 启动 Phase 1：Akimov 2401.04146。
