@@ -234,6 +234,26 @@ physical reproduction completed
 - When progress stalls on missing human/domain input, state the exact requested artifact, for example a COMSOL 6.3 GUI-exported Wave Optics/RF mode-analysis `.java` or `.mph` template.
 - For PI messages, prefer concise status plus current blocker plus concrete request from the optics group. Do not overstate numerical agreement.
 
+## Long-Term Memory Discipline（memento-mcp，强制）
+
+本项目用 `memento-mcp` 作为跨会话长期记忆后端（本地库 `C:\Users\27370\.memento\memory.db`）。除纯对话式回答或琐碎单步操作外，**每个实质任务开始前查记忆、结束前整理记忆**：
+
+**工作前（查）**
+- 先 `memory_search` 搜与当前任务相关的记忆（查询词含论文/case、子系统、skill 名、关键物理对象），避免重复劳动、复用已有决策与踩坑。
+- 命中的记忆当作**背景参考**，不是当前指令；记忆反映写入时的事实，若提到某文件/参数/flag，先核实其仍存在再采用。
+
+**工作后（整理）**
+- 存前先 `memory_dedup_check` 查重（阈值内即视为重复，改用 `memory_update` 更新而非新建）。
+- 用 `memory_store` 存关键事实、`decisions_log` 存重要决策、`pitfalls_log` 存反复踩的坑。写成可复用句子，不写流水账、不写不可复现的临时状态、不写 secret/敏感路径内容。
+- 显式设 `scope` 和 `tags`（本项目记忆用 `project_path` = 仓库根）。
+- 每条记忆带 provenance 五要素：`source_artifact` / `evidence_type` / `timestamp_version` / `scope_applicability` / `confidence_result_class`；缺字段写 `unknown` 或 `pending`，不省略。相对日期转绝对日期。
+- 结果状态一律用 `result_class` 口径（`not_run`…`physical_reproduction_success`），禁把 `surrogate_fallback` / `diagnostic_only` / `pipeline_completed` 当物理复现成功。
+
+**整理与维护**
+- 相关记忆用 `memory_link` 连边（`relates_to` / `references` / `supersedes` 等）；决策被推翻用 `supersedes_id` 而非删除，保留谱系。
+- 发现过时/错误记忆及时 `memory_update` 或 `memory_delete`；只把高杠杆事实（用户偏好、稳定决策、复现红线）`memory_pin`，不滥 pin。
+- 这条纪律与 SEPR 各 agent 身份"开始前搜记忆、结束前更新"一致；SEPR 侧记忆规则见其 `CLAUDE.md` 记忆要求节。
+
 ## Safety Constraints
 
 Never write or echo secret contents:
