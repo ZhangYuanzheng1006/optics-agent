@@ -2,7 +2,7 @@
 
 > **这份文档给谁看**：项目成员、PI、任何想理解"我们设计的自进化 agent 该抄什么、该防什么"的人。
 > **怎么来的**：2026-07-02 在 optics_agent 里并发派了 6 个搜索子 agent，用 arXiv + academic-research + Exa + Firecrawl 多源交叉，覆盖自迭代、提示词工程、多 agent 编排、验证/评估、记忆治理、科学复现+失败防护 6 个方向，每条引用都做过核实（核不到的丢弃）。
-> **和已有文档的关系**：本文已**吸收**同目录下前序 agent 的两份工作总结——`REVIEW-REPORT.md`（2026-06-30，94 篇文献按 SEPR 十块的风险审查）和 `CATEGORY-READING-NOTES.md`（A–K 分类阅读，每篇带 arXiv 编号 + 建议动作）。§0–§4 是本轮 6 路搜索的新经验（说人话 + 2026 最新实验数字），**§5 专门收前序审查里本轮没覆盖或覆盖弱的独有发现**（蓝图/物理 verifier/知识治理/自迭代安全方法论等 SEPR 独有工程面）。两轮结论互相印证，合起来才是完整的"该抄/该防"。
+> **和已有文档的关系**：本文融合了**三个来源**——(1) §0–§4 本轮 6 路外部文献搜索（说人话 + 2026 最新实验数字）；(2) §5 前序 agent 的两份工作总结 `REVIEW-REPORT.md` + `CATEGORY-READING-NOTES.md`（2026-06-30，94 篇按 SEPR 十块的文献审查）；(3) **§6 项目自己的 V1/V2 废案设计与审计** `project/to-do-future/`（optics_agent 在做 SEPR 之前的两代 workflow 方案，同垂域踩过的坑，最贴切）。三来源结论互相印证，合起来才是完整的"该抄/该防"。
 > **术语**：涉及的英文术语在第一次出现时用括号解释。公式若有用 `$...$`。
 
 ---
@@ -21,7 +21,9 @@
 2. **记忆中毒 + 越压越烂：失败/代用/过期的经验会被"语义相似"重新捞回来当成功经验用；反复让 AI 重新总结记忆会越总结越错（有实验从 100% 正确压成 46% 错误）。**
 3. **长链条乘性衰减 + 错误自我强化：10 步流程里每步 95% 正确，连乘下来也崩；而且 AI 会照着自己以前的错继续错，换更大的模型也治不好。**
 
-下面展开。第 2 节按主题讲"该抄/该防"，第 3 节是跨主题的共识铁律，第 4 节最重要——**对照我们 SEPR 现有设计，哪些已经做对、哪些是缺口该补**。
+**⚠ 比"该抄/该防"更优先的一条战略提醒**（来自项目自己 V2 废案审计，详见 §6.1）：最大的风险不是某个技术问题，而是**"在验证价值之前就过度投资治理基础设施"**。SEPR 现在有 6465 行 skill + 全套治理机制，却**一篇 Mie 都还没跑通**——建议先用最小配置跑通一篇 Mie、记录"什么真的断了"，再决定治理怎么加/精简。**先证明价值，再加护栏。**
+
+下面展开。第 2 节按主题讲"该抄/该防"，第 3 节是跨主题铁律，第 4 节对照 SEPR 现有设计（做对的 vs 缺口），第 5 节收前序 94 篇审查的独有发现，第 6 节是项目自己 V1/V2 废案的血泪（**§6.1 是全文优先级最高的一条**）。
 
 ---
 
@@ -239,7 +241,74 @@
 
 ---
 
-## 6. 后续值得读全文的（挑重点）
+## 6. 从项目自己的 V1/V2 废案学到的（同垂域失败史，最贴切）
+
+> 来源：`project/to-do-future/` 里 optics_agent 自己的 workflow **V2** 设计（`workflow_v2_plan-CN.md` 708 行）+ 风险审计（`workflow_v2_risks-CN.md` 278 行，2026-06-20/21）。这是 SEPR（V3）的**前身**：V1 是"可自迭代拓扑 DSL、全自动"（更早，已归档 `to-do-future/DSL/`），V2 是"固定拓扑 + workflow runner（opencode）批处理"，V3=SEPR 转向"claude 交互式子 agent"。**同一个人、同一垂域、三代坑**，比外部文献更贴切。V2 里引用的一批论文（Zombie Agents/MRMMIA/MemRL/LoCoMo/SSGM 等）是当时内部调研，本轮未重核。
+> SEPR 已继承 V2 骨架（固定拓扑 / 自迭代不迭代自己 / 全 human gate / result_class 三态 / run_manifest / replay / 六维裁决 / provenance 五要素 / echoing 防护）——下面只列 **V2 想清楚、但 V3 转 claude 子 agent 后可能没带过去或值得强化**的。
+
+### 6.1 最该刻脑门上的一条：先跑通，再加治理
+
+V2 审计的 P0 头三条（R1 核心卖点错位 / R2 "DSL 优势是假设不是结论、零验证" / R3 确定性流程别用 agent）和结尾那句是血泪：
+
+> "最大的风险不是某个具体技术问题，而是我们在没有验证价值之前就过度投资治理基础设施。"
+
+V2 的"实施顺序"白纸黑字：**第一步跑通最小 Mie case、不建治理基础设施、记录"什么真的断了"；第四步才针对性加治理、只加真断的。**
+
+**照进 SEPR 的镜子**：SEPR 现在有 6465 行 skill + 全套治理（六维裁决/三级治理/失败防护/记忆规则…），但**一篇 Mie 都还没跑通**——正是 R2 警告的状态。**建议**：先用最小配置把 Akimov Mie 那篇跑通一轮（治理可先简化），拿真实的"什么断了"回来，再决定哪些治理该保、该精简、该强化。不是否定 SEPR 设计，是**排序**——先证明价值，再加护栏。这条是本文优先级最高的一条。
+
+### 6.2 建 baseline A/B/C/D，回答"凭什么比聪明人裸用 Claude Code 强"
+
+V2 R1 的灵魂拷问 + 评估体系给了模板：
+- **A** 聪明人 + Claude Code（裸跑）· **B** 固定脚本 pipeline · **C** workflow 无自迭代 · **D** + 自迭代
+- 指标：物理 verifier 通过率 · 缺参发现率 · 复现耗时 · **过度声明率** · replay regression 数 · 人工介入次数 · 成本
+
+SEPR 目前没有这个对比设计。核心卖点（可验证复现）要靠 A/B/C/D 数字证明，否则"SEPR 比裸 Claude Code 强"只是假设。跑通几个 case 后应补上。
+
+### 6.3 V2 想清楚、V3 值得确认/强化的工程细节
+
+| 机制 | V2 出处 | 对 SEPR 的借鉴 |
+|------|---------|----------------|
+| **uncertainty routing** | R9 | 区分"行动置信度 action_confidence"和"信息缺失度 request_uncertainty"；缺参走 clarification/blocked、**不走 debug/retry**。SEPR 有 blocked，但没这个双维度硬路由——防"缺参数还硬 retry 烧轮次" |
+| **physics_formalization 九字段契约** | R10 | geometry / materials / equations / boundary_conditions / sources / solver / observables / assumptions / **missing_fields**，且"所有代码生成必须消费此节点输出"。SEPR step03 有 formalization，把它固化成九字段 + 代码强制消费，挡"正确求解了错误物理问题" |
+| **执行真实性分级** | R21 | emulated < dry-run < real sandbox < real execution。与 result_class **正交**（result_class 管"物理成功到几分"，这个管"跑在多真的环境"）。SEPR result_class 缺这维——Degiron"模拟通过但真实 COMSOL 不同"就是它 |
+| **capsule 100% fire（不靠自觉）** | ECC#1/#10 | V2 的 workflow runner **每节点自动产 capsule**、带 `processed` 字段防重复处理。**SEPR 是 claude 子 agent 架构，报告靠 agent 在 prompt 要求下自己写——天然是"自觉"不是"100% fire"，会漏写/不写**。这是子 agent 架构相对 runner 的固有弱点：要么用 hook 补（SessionStop 强制留痕），要么接受并在编排层逐一校验 |
+| **cold-start brief** | ECC#12 | 每节点 prompt 含完整上下文、不依赖 agent 记得前序——正是 §2 的"每次 spawn 重注入完整模版"，V2/ECC 独立印证 |
+
+### 6.4 记忆层：V2 的记忆工程比 §2/§5 更落地（基于当时 34 篇记忆系统调研）
+
+- **utility_score 混合排序**（R11）：检索分 = 0.5×语义相似 + 0.5×效用值，运行时按结果更新（MemRL 称 λ=0.5 最优）——纯语义相似分不出"相似但有用"vs"相似但有害"。
+- **store routing**（R12）：向量召回前加路由层（query 含 "COMSOL"→project store，"phybench"→global），先规则版，防 over-retrieval 引噪声。
+- **失败记忆主动管理 + forbidden_region**（R14）：主动存 failure_pattern 和"禁区"，入库时查与已有失败模式的相似度。SEPR 有 CAUTIONARY 经验，但没显式 forbidden_region。
+- **observation-based 存储**（R15，LoCoMo）：记忆存**结构化事实**——"在{论文}的{图}复现中，{方法}因{原因}失败"，**不存原始对话/摘要**（摘要丢信息）。
+- **embedding 泛化悬崖**（R16）：跨子方向（COMSOL↔Mie）词汇分布差异大、embedding 排名会逆转；用 **8B reranker** 弥补 + **扩大记忆库规模优先于换更好 embedding**。
+
+> SEPR 用 memento，这些大多可作为 memento 的检索/写入策略强化项（尤其 utility_score 排序、store routing、forbidden_region）。
+
+### 6.5 V1→V2 消除的风险 = "全自动→半自动"决策清单（SEPR 逐条核对是否真继承）
+
+V2 risks 末尾列了 10 条"v1 全自动方案的风险、v2 靠限制自迭代范围从设计上避开"。SEPR 大部分继承了，但这几条建议逐条核对是否真落到 SEPR：
+- **declared vs actual capability 检查**：skill 文本声称的能力 vs 脚本实际行为是否一致（防 skill 说一套做一套）。
+- **template_contract 字段**：模板/蓝图复用时带契约，防"复用带入旧假设"。
+- **loads_memories allowed_types 约束**：节点只准加载特定 type 的记忆，防 memory type 混用污染。
+- **candidate_benchmark 标记**：复现过程新产生的动态 case 标为 candidate，不直接进正式 benchmark（防 benchmark drift）。
+
+### 6.6 本节增量落地项（并入总清单）
+
+| 增量项 | 出处 | 一句话 |
+|--------|------|--------|
+| **先跑通再加治理**（排序） | 6.1 | 先用最小配置跑通一篇 Mie，再按"真断的"精简/强化治理 |
+| baseline A/B/C/D | 6.2 | 证明"比裸 Claude Code 强"，跑通后必做 |
+| uncertainty routing 双维度 | 6.3 | 缺参走 clarification、不走 retry |
+| physics_formalization 九字段 + 代码强制消费 | 6.3 | 挡"正确求解错误物理" |
+| 执行真实性分级（与 result_class 正交） | 6.3 | emulated < dry-run < real |
+| capsule 100% fire + processed | 6.3 | 子 agent 报告别靠自觉，hook 强制留痕 |
+| 记忆 utility_score + store routing + forbidden_region + observation 存储 | 6.4 | 记忆检索/写入落地强化 |
+
+> 合并总落地清单 = §4.2（11 条）+ §5.7（5 条）+ §6.6（7 条）。**其中 6.1"先跑通再加治理"是唯一战略级、优先级最高的一条——它决定其它所有落地项的时机。**
+
+---
+
+## 7. 后续值得读全文的（挑重点）
 
 - **Library Drift（arXiv:2605.19576）**——直接质疑"自动技能库"的价值，SkillsBench 数字最扎心，决定 human gate 的定位。
 - **Your Simulation Runs but Solves the Wrong Physics（arXiv:2605.09360）**——"仿真跑通≠物理对"的确定性检测法，最对我们口味。
@@ -251,7 +320,7 @@
 
 ---
 
-## 7. 附录：来源清单（可追溯）
+## 8. 附录：来源清单（可追溯）
 
 > 说明：2026 年的 arXiv 预印本部分来自研究索引，标题/作者已核实；极新预印本（引用数低）标注为"新"，引用前建议再核。
 
@@ -285,4 +354,4 @@
 
 ---
 
-**本文档结束。** 定位：SEPR 设计改进的经验/风险输入（已融合本轮 6 路搜索 + 前序 94 篇审查两份总结）；下一步由人工（optics_agent 的 CC + 用户）挑第 4.2 + 5.7 节的合并落地清单落地，走人工预训练循环。
+**本文档结束。** 定位：SEPR 设计改进的经验/风险输入（已融合本轮 6 路外部搜索 + 前序 94 篇文献审查 + 项目 V1/V2 废案审计 **三来源**）；下一步由人工（optics_agent 的 CC + 用户）挑第 4.2 + 5.7 + 6.6 节的合并落地清单落地，**先做 §6.1"先跑通再加治理"**，走人工预训练循环。
